@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente Socket.io</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+        }
+        .login-section, .socket-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .chat-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fafafa;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .message strong {
+            color: #007bff;
+        }
+        .message small {
+            color: #666;
+            font-size: 0.8em;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .task-list, .project-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .task-item, .project-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .task-item h4, .project-item h4 {
+            margin: 0 0 10px 0;
+        }
+        .task-item p, .project-item p {
+            margin: 5px 0;
+        }
+        .tasks-section, .projects-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+            max-width: 600px;
+        }
+        .nav {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .nav button {
+            margin: 0 10px;
+        }
+        .view {
+            display: none;
+        }
+        #chat-view {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat con Socket.io y JWT</h1>
+
+    <div id="login-section">
+        <div class="container">
+            <div class="login-section">
+                <h2>Login</h2>
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" placeholder="Usuario">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" placeholder="Contraseña">
+                <button id="login">Iniciar Sesión</button>
+
+                <label for="token">Token JWT:</label>
+                <input type="text" id="token" placeholder="Ingresa tu token JWT">
+                <button id="connect">Conectar Socket</button>
+            </div>
+            <div class="login-section">
+                <h2>Registro</h2>
+                <label for="reg-username">Usuario:</label>
+                <input type="text" id="reg-username" placeholder="Usuario">
+                <label for="reg-password">Contraseña:</label>
+                <input type="password" id="reg-password" placeholder="Contraseña">
+                <label for="reg-role">Rol:</label>
+                <select id="reg-role">
+                    <option value="Alumno">Alumno</option>
+                    <option value="Tutor">Tutor</option>
+                </select>
+                <button id="register">Registrarse</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" style="display: none;">
+        <div class="nav">
+            <button id="show-chat">Chat Público</button>
+            <button id="show-tasks">Tareas</button>
+            <button id="show-projects">Proyectos</button>
+            <button id="logout">Cerrar Sesión</button>
+        </div>
+
+        <div id="chat-view" class="view">
+        <div class="container">
+            <div class="chat-section">
+                <h2>Chat Público</h2>
+                <div id="messages" class="chat-messages"></div>
+                <div class="chat-input">
+                    <input type="text" id="message" placeholder="Escribe un mensaje público">
+                    <button id="send">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tasks-view" class="view" style="display: none;">
+        <div class="container">
+            <div class="tasks-section">
+                <h2>Tareas</h2>
+                <div id="tasks" class="task-list"></div>
+                <div id="create-task" style="display: none;">
+                    <h3 id="task-form-title">Crear Tarea</h3>
+                    <form id="task-form" style="display: flex; flex-wrap: wrap; gap: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-type">Tipo de tarea:</label>
+                            <select id="task-type">
+                                <option value="daily">Diaria</option>
+                                <option value="project">Proyecto</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-name">Nombre:</label>
+                            <input type="text" id="task-name" placeholder="Nombre de la tarea" required>
+                        </div>
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-description">Descripción:</label>
+                            <textarea id="task-description" placeholder="Descripción"></textarea>
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-responsible">Asignar a alumno:</label>
+                            <select id="task-responsible" required>
+                                <option value="">Cargando...</option>
+                                <!-- Opciones cargadas dinámicamente -->
+                            </select>
+                        </div>
+                        <div id="project-field" style="flex: 1 1 200px; display: none; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-project">Proyecto:</label>
+                            <select id="task-project">
+                                <option value="">Sin proyecto</option>
+                                <!-- Opciones de proyectos para tareas de proyecto -->
+                            </select>
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-due-date">Fecha límite:</label>
+                            <input type="date" id="task-due-date">
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-priority">Prioridad:</label>
+                            <select id="task-priority">
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="task-status">Estado:</label>
+                            <select id="task-status">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En progreso">En progreso</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Bloqueada">Bloqueada</option>
+                            </select>
+                        </div>
+                        <div style="flex-basis: 100%; display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" id="save-task">Guardar</button>
+                            <button type="button" id="cancel-task">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+                <button id="new-task-btn" style="display: none;">Nueva Tarea</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="projects-view" class="view" style="display: none;">
+        <div class="container">
+            <div class="projects-section">
+                <h2>Proyectos</h2>
+                <div id="projects" class="project-list"></div>
+                <div id="create-project" style="display: none;">
+                    <h3 id="project-form-title">Crear Proyecto</h3>
+                    <form id="project-form" style="display: flex; flex-wrap: wrap; gap: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="project-name">Nombre del proyecto:</label>
+                            <input type="text" id="project-name" placeholder="Nombre del proyecto">
+                        </div>
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="project-description">Descripción:</label>
+                            <textarea id="project-description" placeholder="Descripción"></textarea>
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="project-start-date">Fecha de inicio:</label>
+                            <input type="date" id="project-start-date">
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="project-end-date">Fecha de fin:</label>
+                            <input type="date" id="project-end-date">
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="project-status">Estado:</label>
+                            <select id="project-status">
+                                <option value="Planificación">Planificación</option>
+                                <option value="En progreso">En progreso</option>
+                                <option value="Completado">Completado</option>
+                                <option value="Pausado">Pausado</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="project-participants">Asignar a alumno:</label>
+                            <select id="project-participants" style="max-height: 40px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px; padding: 4px;">
+                                <!-- Opciones cargadas dinámicamente -->
+                            </select>
+                        </div>
+                        <div style="flex-basis: 100%; display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" id="save-project">Guardar</button>
+                            <button type="button" id="cancel-project">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+                <button id="new-project-btn" style="display: none;">Nuevo Proyecto</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:8000', {
+            autoConnect: false,
+            extraHeaders: {}
+        });
+
+        const loginBtn = document.getElementById('login');
+        const registerBtn = document.getElementById('register');
+        const connectBtn = document.getElementById('connect');
+        const sendBtn = document.getElementById('send');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const tokenInput = document.getElementById('token');
+        const messageInput = document.getElementById('message');
+        const messagesDiv = document.getElementById('messages');
+
+        connectBtn.addEventListener('click', () => {
+            const token = tokenInput.value;
+            if (!token) {
+                alert('Ingresa un token JWT');
+                return;
+            }
+            if (socket.connected) {
+                socket.disconnect();
+            }
+            socket.auth = { token };
+            socket.connect();
+        });
+
+        tokenInput.addEventListener('input', () => {
+            if (tokenInput.value.trim() === '') {
+                tokenInput.setAttribute('readonly', true);
+            } else {
+                tokenInput.removeAttribute('readonly');
+            }
+        });
+
+        sendBtn.addEventListener('click', () => {
+            const msg = messageInput.value;
+            if (!msg) return;
+            socket.emit('public-message', msg);
+            messageInput.value = '';
+        });
+
+        socket.on('connect', () => {
+            messagesDiv.innerHTML += '<p class="message status">Conectado al servidor</p>';
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log('Usuario desconectado:', currentUser ? currentUser.username : 'N/A', 'Razón:', reason);
+
+            // No mostrar mensaje de desconexión si está guardando proyecto, recientemente guardado o si el cliente desconectó intencionalmente
+            if (reason === 'io client disconnect' || isSavingProject || isRecentlySaved) {
+                // No mostrar mensaje
+            } else {
+                messagesDiv.innerHTML += '<p class="message status">Desconectado del servidor - Razón: ' + reason + '</p>';
+            }
+
+            // Reconectar automáticamente si hay token válido, excepto si el cliente desconectó intencionalmente
+            if (reason !== 'io client disconnect' && tokenInput.value && isTokenValid(tokenInput.value)) {
+                console.log('Reconectando socket automáticamente...');
+                socket.auth = { token: tokenInput.value };
+                socket.connect();
+            }
+        });
+
+        socket.on('public-message', (data) => {
+            messagesDiv.innerHTML += `<p class="message"><strong>${data.user} (${data.role}):</strong> ${data.message} <small>(${new Date(data.timestamp).toLocaleTimeString()})</small></p>`;
+        });
+
+        socket.on('connect_error', (err) => {
+            messagesDiv.innerHTML += `<p class="message status">Error de conexión: ${err.message}</p>`;
+        });
+
+        let currentUser = null;
+        let currentRole = null;
+        let editingTaskId = null;
+        let editingProjectId = null;
+        let isSavingProject = false;
+        let isRecentlySaved = false;
+
+        function decodeJWT(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                return payload;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function isTokenValid(token) {
+            try {
+                const payload = decodeJWT(token);
+                if (!payload || !payload.exp) return false;
+                const now = Math.floor(Date.now() / 1000);
+                return payload.exp > now;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function getAuthHeaders() {
+            if (!tokenInput.value) {
+                alert('No hay token JWT. Por favor, inicia sesión.');
+                throw new Error('No token');
+            }
+            if (!isTokenValid(tokenInput.value)) {
+                alert('Token JWT expirado. Por favor, inicia sesión de nuevo.');
+                tokenInput.value = '';
+                throw new Error('Token expirado');
+            }
+            return { token: tokenInput.value };
+        }
+
+        async function loadUsers() {
+            try {
+                console.log('Iniciando carga de usuarios...');
+                // Timeout reducido a 5000 ms para respuesta más rápida
+                const response = await axios.get('http://localhost:8000/user/', { headers: getAuthHeaders(), timeout: 5000 });
+                console.log('Respuesta recibida de usuarios:', response);
+                if (!response.data || !Array.isArray(response.data)) {
+                    console.error('Respuesta inesperada al cargar usuarios:', response.data);
+                    alert('Error: respuesta inesperada al cargar usuarios');
+                    return [];
+                }
+                return response.data;
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado o inválido. Por favor, inicia sesión de nuevo.');
+                    // Limpiar token y evitar que el dropdown se quede en cargando
+                    tokenInput.value = '';
+                    tokenInput.setAttribute('readonly', true);
+                    // Opcional: redirigir a login o mostrar formulario login
+                } else if (error.response && error.response.status === 403) {
+                    alert('Acceso denegado.');
+                } else if (error.code === 'ECONNABORTED') {
+                    alert('Tiempo de espera agotado al cargar usuarios. Verifica que el servidor esté corriendo en http://localhost:8000');
+                } else {
+                    alert('Error cargando usuarios: ' + (error.response?.data?.message || error.message));
+                }
+                console.error('Error loading users:', error);
+                return [];
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                const response = await axios.get('http://localhost:8000/projects', { headers: getAuthHeaders() });
+                return response.data;
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado o inválido. Por favor, inicia sesión de nuevo.');
+                    tokenInput.value = '';
+                    tokenInput.setAttribute('readonly', true);
+                } else {
+                    console.error('Error loading projects:', error);
+                }
+                return [];
+            }
+        }
+
+        async function loadTutors() {
+            try {
+                const users = await loadUsers();
+                return users.filter(user => user.role && user.role.toLowerCase() === 'tutor');
+            } catch (error) {
+                console.error('Error loading tutors:', error);
+                return [];
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await axios.get('http://localhost:8000/tasks', { headers: getAuthHeaders() });
+                return response.data;
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado o inválido. Por favor, inicia sesión de nuevo.');
+                    tokenInput.value = '';
+                    tokenInput.setAttribute('readonly', true);
+                } else {
+                    console.error('Error loading tasks:', error);
+                }
+                return [];
+            }
+        }
+
+        async function loadChatMessages() {
+            console.log('Loading chat messages...');
+            try {
+                const response = await axios.get('http://localhost:8000/api/chat/messages', { headers: getAuthHeaders() });
+                const messages = response.data;
+                console.log('Chat messages loaded:', messages.length, 'messages');
+                messagesDiv.innerHTML = ''; // Clear current messages
+                messages.forEach(msg => {
+                    messagesDiv.innerHTML += `<p class="message"><strong>${msg.user.username} (${msg.user.role}):</strong> ${msg.message} <small>(${new Date(msg.timestamp).toLocaleTimeString()})</small></p>`;
+                });
+            } catch (error) {
+                console.error('Error loading chat messages:', error.response?.status, error.response?.data, error.message);
+            }
+        }
+
+        async function loadUsersForTaskForm() {
+            const select = document.getElementById('task-responsible');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const users = await loadUsers();
+                const students = users.filter(user => user.role && user.role.toLowerCase() === 'alumno');
+                select.innerHTML = '';
+                if (students.length === 0) {
+                    select.innerHTML = '<option value="">No hay alumnos</option>';
+                } else {
+                    students.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.username;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                select.innerHTML = '<option value="">Error cargando alumnos</option>';
+                console.error('Error loading users for task form:', error);
+            }
+        }
+
+        async function loadProjectsForTaskForm() {
+            try {
+                const projects = await loadProjects();
+                const projectSelect = document.getElementById('task-project');
+                projectSelect.innerHTML = '<option value="">Sin proyecto</option>';
+                if (Array.isArray(projects)) {
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.id;
+                        option.textContent = project.name;
+                        projectSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                const projectSelect = document.getElementById('task-project');
+                projectSelect.innerHTML = '<option value="">Error cargando proyectos</option>';
+                console.error('Error loading projects for task form:', error);
+            }
+        }
+
+        function renderTasks(tasks) {
+            const tasksDiv = document.getElementById('tasks');
+            tasksDiv.innerHTML = '';
+            let filteredTasks = tasks;
+            // La lógica de filtrado ya se hace en el backend, pero mantenemos una verificación por si acaso
+            // if (currentRole === 'Alumno') {
+            //     filteredTasks = tasks.filter(task => task.responsibleId === currentUser.id);
+            // }
+            if (filteredTasks.length === 0) {
+                tasksDiv.innerHTML = currentRole === 'Tutor' ? '<p>No se han creado tareas.</p>' : '<p>No tienes tareas asignadas aún.</p>';
+                return;
+            }
+            filteredTasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task-item';
+                taskDiv.innerHTML = `
+                    <h4>${task.name} (${task.type === 'daily' ? 'Diaria' : 'Proyecto'})</h4>
+                    <p>${task.description || ''}</p>
+                    <p>Tutor: ${task.tutor?.username || 'Tutor no asignado'}</p>
+                    <p>Alumno asignado: ${task.responsible?.username || 'N/A'}</p>
+                    <p>Estado: ${task.status}</p>
+                    <p>Prioridad: ${task.priority}</p>
+                    ${task.dueDate ? `<p>Fecha límite: ${new Date(task.dueDate).toLocaleDateString()}</p>` : ''}
+                    ${currentRole === 'Tutor' ? `<button onclick="editTask(${task.id})">Editar</button> <button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
+                `;
+                tasksDiv.appendChild(taskDiv);
+            });
+        }
+
+        function renderProjects(projects, tasks = []) {
+            const projectsDiv = document.getElementById('projects');
+            projectsDiv.innerHTML = '';
+            let filteredProjects = projects;
+            if (currentRole === 'Alumno') {
+                // Filtrar proyectos que tienen tareas asignadas al alumno
+                const studentProjectIds = new Set(tasks.filter(task => task.responsibleId === currentUser.id && task.projectId).map(task => task.projectId));
+                filteredProjects = projects.filter(project => studentProjectIds.has(project.id));
+            }
+            if (filteredProjects.length === 0) {
+                projectsDiv.innerHTML = currentRole === 'Alumno' ? '<p>No tienes proyectos asignados aún.</p>' : '<p>No hay proyectos disponibles.</p>';
+                return;
+            }
+            filteredProjects.forEach(project => {
+                console.log('Project tutor property:', project.tutor);
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project-item';
+                const participantsList = project.participants && project.participants.length > 0 ? project.participants.map(p => p.username).join(', ') : 'Ninguno';
+                // Fix tutor display: show tutor username if available, else 'N/A'
+                const tutorName = project.tutor && project.tutor.username ? project.tutor.username : 'N/A';
+                projectDiv.innerHTML = `
+                    <h4>${project.name}</h4>
+                    <p>${project.description || ''}</p>
+                    <p>Estado: ${project.status}</p>
+                    <p>Tutor: ${tutorName}</p>
+                    <p>Participantes: ${participantsList}</p>
+                    ${project.startDate ? `<p>Inicio: ${new Date(project.startDate).toLocaleDateString()}</p>` : ''}
+                    ${project.endDate ? `<p>Fin: ${new Date(project.endDate).toLocaleDateString()}</p>` : ''}
+                    ${currentRole === 'Tutor' ? `<button onclick="editProject(${project.id})">Editar</button> <button onclick="deleteProject(${project.id})">Eliminar</button>` : ''}
+                `;
+                projectsDiv.appendChild(projectDiv);
+            });
+        }
+
+        async function refreshData() {
+            console.log('Iniciando refreshData...');
+            try {
+                const [tasks, projects] = await Promise.all([loadTasks(), loadProjects()]);
+                console.log('Datos cargados exitosamente:', { tasksCount: tasks.length, projectsCount: projects.length });
+                renderTasks(tasks);
+                renderProjects(projects, tasks);
+                console.log('Datos renderizados exitosamente');
+            } catch (error) {
+                console.error('Error en refreshData:', error);
+                // Don't re-throw to prevent cascading errors
+            }
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            if (!username || !password) {
+                alert('Ingresa usuario y contraseña');
+                return;
+            }
+            try {
+                const response = await axios.post('http://localhost:8000/auth/login', {
+                    username,
+                    password,
+                    role: document.getElementById('role') ? document.getElementById('role').value : undefined
+                });
+                const token = response.headers['token'] || response.data.token || response.headers.token;
+                tokenInput.value = token;
+                tokenInput.removeAttribute('readonly');
+                const payload = decodeJWT(token);
+                currentUser = payload;
+                currentRole = payload.role;
+                messagesDiv.innerHTML += '<p class="message status">Login exitoso, token obtenido</p>';
+
+                // Conectar socket automáticamente
+                if (socket.connected) {
+                    socket.disconnect();
+                }
+                socket.auth = { token };
+                socket.connect();
+
+                // Mostrar/ocultar botones según rol
+                document.getElementById('new-task-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
+                document.getElementById('new-project-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
+
+                // Asegurarse que las vistas de listas son visibles y los formularios de creación ocultos
+                document.getElementById('tasks').style.display = 'block';
+                document.getElementById('projects').style.display = 'block';
+                document.getElementById('create-task').style.display = 'none';
+                document.getElementById('create-project').style.display = 'none';
+
+                // Cargar datos
+                await refreshData();
+
+                // Ocultar login y mostrar app principal
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                // Mostrar vista de chat y cargar mensajes al iniciar sesión
+                document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+                document.getElementById('chat-view').style.display = 'block';
+                await loadChatMessages();
+            } catch (error) {
+                messagesDiv.innerHTML += `<p>Error en login: ${error.response?.data?.message || error.message}</p>`;
+            }
+        });
+
+        registerBtn.addEventListener('click', async () => {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const role = document.getElementById('reg-role').value;
+            if (!username || !password || !role) {
+                alert('Ingresa usuario, contraseña y rol');
+                return;
+            }
+            try {
+                const response = await axios.post('http://localhost:8000/auth/register', {
+                    username,
+                    password,
+                    role
+                });
+                alert('Registro exitoso. Ahora puedes iniciar sesión.');
+                // Clear form
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-role').value = 'Alumno';
+            } catch (error) {
+                alert('Error en registro: ' + (error.response?.data?.message || error.message));
+            }
+        });
+
+        // Event listeners para tareas
+        document.getElementById('new-task-btn').addEventListener('click', async () => {
+            document.getElementById('create-task').style.display = 'block';
+            const select = document.getElementById('task-responsible');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                console.log('Cargando usuarios para dropdown...');
+                const users = await loadUsers();
+                console.log('Usuarios recibidos:', users);
+                const students = users.filter(user => user.role && user.role.toLowerCase() === 'alumno');
+                console.log('Alumnos filtrados:', students);
+                select.innerHTML = '';
+                if (students.length === 0) {
+                    select.innerHTML = '<option value="">No hay alumnos</option>';
+                } else {
+                    students.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.username;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                select.innerHTML = '<option value="">Error cargando alumnos</option>';
+                console.error('Error loading users:', error);
+            }
+                try {
+                    const projects = await loadProjects();
+                    const projectSelect = document.getElementById('task-project');
+                    projectSelect.innerHTML = '<option value="">Sin proyecto</option>';
+                    if (Array.isArray(projects)) {
+                        projects.forEach(project => {
+                            const option = document.createElement('option');
+                            option.value = project.id;
+                            option.textContent = project.name;
+                            projectSelect.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    const projectSelect = document.getElementById('task-project');
+                    projectSelect.innerHTML = '<option value="">Error cargando proyectos</option>';
+                    console.error('Error loading projects:', error);
+                }
+        });
+
+        document.getElementById('task-type').addEventListener('change', (e) => {
+            document.getElementById('project-field').style.display = e.target.value === 'project' ? 'block' : 'none';
+        });
+
+        document.getElementById('save-task').addEventListener('click', async () => {
+            const type = document.getElementById('task-type').value;
+            const name = document.getElementById('task-name').value.trim();
+            const description = document.getElementById('task-description').value;
+            const responsibleId = document.getElementById('task-responsible').value;
+            const tutorId = currentUser.id;
+            const projectId = type === 'project' ? document.getElementById('task-project').value : null;
+            const dueDate = document.getElementById('task-due-date').value;
+            const priority = document.getElementById('task-priority').value;
+            const status = document.getElementById('task-status').value;
+
+            if (!name) {
+                alert('Ingresa nombre de la tarea');
+                return;
+            }
+            if (!responsibleId) {
+                alert('Selecciona alumno');
+                return;
+            }
+            if (!priority) {
+                alert('Selecciona prioridad');
+                return;
+            }
+            if (!type) {
+                alert('Selecciona tipo de tarea');
+                return;
+            }
+            if (type === 'project' && !projectId) {
+                alert('Selecciona proyecto para tarea de proyecto');
+                return;
+            }
+
+            try {
+                const taskData = {
+                    name,
+                    description: description || null,
+                    responsibleId: parseInt(responsibleId),
+                    tutorId: parseInt(tutorId),
+                    priority,
+                    type,
+                    status
+                };
+                if (dueDate) {
+                    taskData.dueDate = dueDate;
+                }
+                if (projectId) {
+                    taskData.projectId = parseInt(projectId);
+                }
+
+                if (editingTaskId) {
+                    // Update existing task
+                    await axios.put(`http://localhost:8000/tasks/${editingTaskId}`, taskData, { headers: getAuthHeaders() });
+                    alert('Tarea actualizada exitosamente');
+                } else {
+                    // Create new task
+                    await axios.post('http://localhost:8000/tasks', taskData, { headers: getAuthHeaders() });
+                    alert('Tarea creada exitosamente');
+                }
+
+                // Reset form and hide
+                editingTaskId = null;
+                document.getElementById('task-form-title').textContent = 'Crear Tarea';
+                document.getElementById('create-task').style.display = 'none';
+                await refreshData();
+            } catch (error) {
+                console.error('Error guardando tarea:', error);
+                alert('Error guardando tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+            }
+        });
+
+        document.getElementById('cancel-task').addEventListener('click', () => {
+            document.getElementById('create-task').style.display = 'none';
+        });
+
+        // Similar para proyectos
+        document.getElementById('new-project-btn').addEventListener('click', async () => {
+            editingProjectId = null; // Reiniciar para crear nuevo proyecto
+            document.getElementById('project-form-title').textContent = 'Crear Proyecto';
+
+            // Limpiar formulario
+            document.getElementById('project-name').value = '';
+            document.getElementById('project-description').value = '';
+            document.getElementById('project-start-date').value = '';
+            document.getElementById('project-end-date').value = '';
+            document.getElementById('project-status').value = 'Planificación';
+
+            // Mostrar formulario
+            document.getElementById('create-project').style.display = 'block';
+
+            // Load users for participants dropdown with loading state
+            const participantsSelect = document.getElementById('project-participants');
+            participantsSelect.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const users = await loadUsers();
+                const students = users.filter(user => user.role && user.role.toLowerCase() === 'alumno');
+                participantsSelect.innerHTML = '';
+                if (students.length === 0) {
+                    participantsSelect.innerHTML = '<option value="">No hay alumnos</option>';
+                } else {
+                    students.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.username;
+                        participantsSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                participantsSelect.innerHTML = '<option value="">Error cargando alumnos</option>';
+                console.error('Error loading users for project form:', error);
+            }
+        });
+
+        document.getElementById('save-project').addEventListener('click', async () => {
+            const name = document.getElementById('project-name').value.trim();
+            const description = document.getElementById('project-description').value;
+            const startDate = document.getElementById('project-start-date').value;
+            const endDate = document.getElementById('project-end-date').value;
+            const status = document.getElementById('project-status').value;
+            const participantsSelect = document.getElementById('project-participants');
+
+            // Get selected participant as a single number
+            const selectedParticipant = parseInt(participantsSelect.value);
+            const tutorId = currentUser.id;
+
+            if (!name) {
+                alert('Ingresa nombre del proyecto');
+                return;
+            }
+            if (isNaN(selectedParticipant)) {
+                alert('Selecciona un alumno para el proyecto');
+                return;
+            }
+
+            try {
+                const projectData = {
+                    name,
+                    description: description || null,
+                    startDate: startDate || null,
+                    endDate: endDate || null,
+                    status,
+                    participants: [selectedParticipant], // Enviar como array con un solo alumno
+                    tutorId: parseInt(currentUser.id)
+                };
+
+                if (editingProjectId) {
+                    // Update existing project
+                    await axios.put(`http://localhost:8000/projects/${editingProjectId}`, projectData, { headers: getAuthHeaders() });
+                    alert('Proyecto actualizado exitosamente');
+                } else {
+                    // Create new project
+                    await axios.post('http://localhost:8000/projects', projectData, { headers: getAuthHeaders() });
+                    alert('Proyecto creado exitosamente');
+                }
+
+                // Reset form and hide
+                editingProjectId = null;
+                document.getElementById('project-form-title').textContent = 'Crear Proyecto';
+                document.getElementById('create-project').style.display = 'none';
+                await refreshData();
+            } catch (error) {
+                console.error('Error guardando proyecto:', error);
+                alert('Error guardando proyecto: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+            }
+        });
+
+        document.getElementById('cancel-project').addEventListener('click', () => {
+            document.getElementById('create-project').style.display = 'none';
+        });
+
+        // Event listeners para navegación
+        document.getElementById('show-chat').addEventListener('click', async () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('chat-view').style.display = 'block';
+            await loadChatMessages();
+        });
+
+        document.getElementById('show-tasks').addEventListener('click', () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('tasks-view').style.display = 'block';
+        });
+
+        document.getElementById('show-projects').addEventListener('click', () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('projects-view').style.display = 'block';
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            // Limpiar datos de usuario
+            currentUser = null;
+            currentRole = null;
+            tokenInput.value = '';
+            tokenInput.setAttribute('readonly', true);
+            usernameInput.value = '';
+            passwordInput.value = '';
+
+            // Ocultar app principal y mostrar login
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+
+            // Desconectar socket si está conectado
+            if (socket.connected) {
+                socket.disconnect();
+            }
+
+            // Limpiar mensajes
+            messagesDiv.innerHTML = '';
+        });
+
+        // Funciones globales para editar/eliminar
+        window.editTask = async (id) => {
+            try {
+                const response = await axios.get(`http://localhost:8000/tasks/${id}`, { headers: getAuthHeaders() });
+                const task = response.data;
+
+                // Set editing mode
+                editingTaskId = id;
+                document.getElementById('task-form-title').textContent = 'Editar Tarea';
+
+                // Populate form
+                document.getElementById('task-type').value = task.type;
+                document.getElementById('task-name').value = task.name;
+                document.getElementById('task-description').value = task.description || '';
+                document.getElementById('task-responsible').value = task.responsibleId;
+                document.getElementById('task-project').value = task.projectId || '';
+                document.getElementById('task-due-date').value = task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '';
+                document.getElementById('task-priority').value = task.priority;
+                document.getElementById('task-status').value = task.status;
+
+                // Show project field if task type is project
+                document.getElementById('project-field').style.display = task.type === 'project' ? 'block' : 'none';
+
+                // Load dropdowns
+                await loadUsersForTaskForm();
+                await loadProjectsForTaskForm();
+
+                // Show form
+                document.getElementById('create-task').style.display = 'block';
+            } catch (error) {
+                alert('Error cargando tarea: ' + (error.response?.data?.message || error.message));
+            }
+        };
+
+        window.deleteTask = async (id) => {
+            if (confirm('¿Eliminar tarea?')) {
+                try {
+                    await axios.delete(`http://localhost:8000/tasks/${id}`, { headers: getAuthHeaders() });
+                    await refreshData();
+                } catch (error) {
+                    alert('Error eliminando tarea');
+                }
+            }
+        };
+
+        window.editProject = async (id) => {
+            try {
+                const response = await axios.get(`http://localhost:8000/projects/${id}`, { headers: getAuthHeaders() });
+                const project = response.data;
+
+                // Set editing mode
+                editingProjectId = id;
+                document.getElementById('project-form-title').textContent = 'Editar Proyecto';
+
+                // Populate form
+                document.getElementById('project-name').value = project.name;
+                document.getElementById('project-description').value = project.description || '';
+                document.getElementById('project-start-date').value = project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '';
+                document.getElementById('project-end-date').value = project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '';
+                document.getElementById('project-status').value = project.status;
+
+                // Load participants
+                const participantsSelect = document.getElementById('project-participants');
+                participantsSelect.innerHTML = '';
+                try {
+                    const users = await loadUsers();
+                    const students = users.filter(user => user.role && user.role.toLowerCase() === 'alumno');
+                    if (students.length === 0) {
+                        participantsSelect.innerHTML = '<option value="">No hay alumnos</option>';
+                    } else {
+                        students.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = user.username;
+                            // Pre-select participants
+                            if (project.participants && project.participants.some(p => p.id === user.id)) {
+                                option.selected = true;
+                            }
+                            participantsSelect.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading users for project edit:', error);
+                }
+
+                // Show form
+                document.getElementById('create-project').style.display = 'block';
+            } catch (error) {
+                alert('Error cargando proyecto: ' + (error.response?.data?.message || error.message));
+            }
+        };
+
+        window.deleteProject = async (id) => {
+            if (confirm('¿Eliminar proyecto?')) {
+                try {
+                    await axios.delete(`http://localhost:8000/projects/${id}`, { headers: getAuthHeaders() });
+                    await refreshData();
+                } catch (error) {
+                    alert('Error eliminando proyecto');
+                }
+            }
+        };
+    </script>
+</body>
+</html>

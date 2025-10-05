@@ -1,0 +1,58 @@
+### Crear tarea (como alumno, responsibleId se asigna automáticamente)
+POST http://localhost:8000/tasks
+Content-Type: application/json
+### Crear tarea
+### Crear tarea (solo tutor)
+POST http://localhost:8000/tasks
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+{
+  "projectId": 4,
+  "name": "Tarea de ejemplo",
+  "description": "Resolver ejercicios matemáticos",
+  "responsibleId": 5,
+  "dueDate": "2025-09-20T12:00:00.000Z",
+  "priority": "Alta",
+  "status": "Pendiente"
+}
+### Obtener todas las tareas (solo tutor)
+GET http://localhost:8000/tasks
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+### Obtener tarea por ID (solo tutor)
+GET http://localhost:8000/tasks/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+### Actualizar tarea (solo tutor)
+PATCH http://localhost:8000/tasks/1
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+{
+  "status": "Completada"
+}
+### Eliminar tarea (solo tutor)
+DELETE http://localhost:8000/tasks/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+
+### Obtener todas las tareas
+GET http://localhost:8000/tasks
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjc5MDgsImV4cCI6MTc1ODA3MTUwOH0.eMhWfBveuz7hlFp7dyzgmcyOC9Ogl_bY2pCRVHGPtZA
+
+### Obtener tarea por ID
+GET http://localhost:8000/tasks/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjc5MDgsImV4cCI6MTc1ODA3MTUwOH0.eMhWfBveuz7hlFp7dyzgmcyOC9Ogl_bY2pCRVHGPtZA
+
+### Actualizar tarea
+PATCH http://localhost:8000/tasks/1
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjc5MDgsImV4cCI6MTc1ODA3MTUwOH0.eMhWfBveuz7hlFp7dyzgmcyOC9Ogl_bY2pCRVHGPtZA
+
+{
+  "status": "En progreso"
+}
+
+### Eliminar tarea
+DELETE http://localhost:8000/tasks/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjc5MDgsImV4cCI6MTc1ODA3MTUwOH0.eMhWfBveuz7hlFp7dyzgmcyOC9Ogl_bY2pCRVHGPtZA
+
+  "status": "Completada"

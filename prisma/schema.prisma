@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  username  String  @unique
+  role      String
+  password  String
+  projects      Project[] @relation("ProjectParticipants")
+  tasks         Task[]    @relation("UserTasks")
+  tutorProjects Project[] @relation("ProjectTutor")
+  tutoredTasks  Task[]    @relation("TutorTasks")
+  chatMessages  ChatMessage[] @relation("ChatUser")
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String   // Planificación, En progreso, Completado, Pausado
+  tasks       Task[]
+  participants User[] @relation("ProjectParticipants")
+  tutor       User?    @relation("ProjectTutor", fields: [tutorId], references: [id])
+  tutorId     Int?
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  dueDate     DateTime?
+  priority    String   // Baja, Media, Alta
+  status      String   // Pendiente, En progreso, Completada, Bloqueada
+  type        String   @default("project")  // "daily" o "project"
+  project     Project? @relation(fields: [projectId], references: [id])
+  projectId   Int?
+  responsible User     @relation("UserTasks", fields: [responsibleId], references: [id])
+  responsibleId Int
+  tutor       User?    @relation("TutorTasks", fields: [tutorId], references: [id])
+  tutorId     Int?
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation("ChatUser", fields: [userId], references: [id])
+  message   String
+  timestamp DateTime @default(now())
+}

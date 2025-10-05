@@ -1,0 +1,109 @@
+### Crear proyecto (como tuor, tutorId y participants se asignan automáticamente)
+POST http://localhost:8000/projects
+Content-Type: application/json
+### Crear proyecto (solo tutor)
+POST http://localhost:8000/projects
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNzA1NTQsImV4cCI6MTc1ODA3NDE1NH0.5rMOyW_qpwesQ4DAiU8Yf-qJqsmlj4XBBBUjYOTgXaE
+
+
+{
+  "name": "Proyecto de ejemplo",
+  "description": "Descripción del proyecto",
+  "startDate": "2025-09-16T05:45:00.000Z",
+  "endDate": "2025-10-12T12:45:00.000Z",
+  "status": "Planificación",
+  "participants": [5]
+}
+### Obtener todos los proyectos (solo tutor)
+GET http://localhost:8000/projects
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNzA1NTQsImV4cCI6MTc1ODA3NDE1NH0.5rMOyW_qpwesQ4DAiU8Yf-qJqsmlj4XBBBUjYOTgXaE
+### Obtener todos los proyectos (como alumno)
+GET http://localhost:8000/projects
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJhbHVtbm8xIiwicm9sZSI6IkFsdW1ubyIsImlhdCI6MTc1ODA2NjQ0OSwiZXhwIjoxNzU4MDcwMDQ5fQ.bUHFutdS9PHUbS05ul5qkDFB1mmQm48Osn8ZYfS7hkk
+### Obtener proyecto por ID (tutor o alumno)
+GET http://localhost:8000/projects/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+### Actualizar proyecto (solo tutor)
+PATCH http://localhost:8000/projects/1
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+{
+  "status": "Completado"
+}
+### Eliminar proyecto (solo tutor)
+DELETE http://localhost:8000/projects/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+### Crear tarea (como tutor)
+POST http://localhost:8000/tasks
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+{
+  "projectId": 4,
+  "name": "Tarea de ejemplo",
+  "description": "Resolver ejercicios matemáticos",
+  "responsibleId": 5,
+  "dueDate": "2025-09-20T12:00:00.000Z",
+  "priority": "Alta",
+  "status": "Pendiente"
+}
+
+### Obtener todas las tareas (como tutor)
+GET http://localhost:8000/tasks
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+### Obtener tarea por ID
+GET http://localhost:8000/tasks/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+### Actualizar tarea
+PATCH http://localhost:8000/tasks/1
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+{
+  "status": "Completada"
+}
+
+### Eliminar tarea
+DELETE http://localhost:8000/tasks/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+### Crear proyecto (como tutor)
+POST http://localhost:8000/projects
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+{
+  "name": "Proyecto de ejemplo",
+  "description": "Descripción del proyecto",
+  "startDate": "2025-09-16T05:45:00.000Z",
+  "endDate": "2025-10-12T12:45:00.000Z",
+  "status": "Planificación",
+  "participants": [5]
+}
+
+### Obtener todos los proyectos (como tutor)
+GET http://localhost:8000/projects
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+
+### Obtener todos los proyectos (como alumno)
+GET http://localhost:8000/projects
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJhbHVtbm8xIiwicm9sZSI6IkFsdW1ubyIsImlhdCI6MTc1ODA2NjQ0OSwiZXhwIjoxNzU4MDcwMDQ5fQ.bUHFutdS9PHUbS05ul5qkDFB1mmQm48Osn8ZYfS7hkk
+
+### Obtener proyecto por ID (tutor o alumno)
+GET http://localhost:8000/projects/1
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJhbHVtbm8xIiwicm9sZSI6IkFsdW1ubyIsImlhdCI6MTc1ODA2NjQ0OSwiZXhwIjoxNzU4MDcwMDQ5fQ.bUHFutdS9PHUbS05ul5qkDFB1mmQm48Osn8ZYfS7hkk
+
+### Actualizar proyecto (solo tutor)
+PATCH http://localhost:8000/projects/1
+Content-Type: application/json
+token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJ0dXRvcjEiLCJyb2xlIjoiVHV0b3IiLCJpYXQiOjE3NTgwNjYwNzYsImV4cCI6MTc1ODA2OTY3Nn0.oM8sxlCpzEqEvrj7JK-8HIRroJsijdChkIualwrInzA
+{
+  "status": "Completado"
+}
+
+### Eliminar proyecto (solo tutor)
+DELETE http://localhost:8000/projects/1
+token: 

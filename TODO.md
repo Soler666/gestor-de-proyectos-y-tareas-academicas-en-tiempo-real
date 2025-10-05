@@ -1,0 +1,4 @@
+- [x] Create src/routes/chatRoutes.ts with GET /messages route pointing to getChatMessages
+- [x] Register /api/chat route in src/app.ts
+- [x] Add debug logs in loadChatMessages() in client.html
+- [ ] Test login/logout with multiple users to verify messages persist

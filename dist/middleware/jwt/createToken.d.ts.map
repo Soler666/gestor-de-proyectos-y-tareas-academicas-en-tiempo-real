@@ -1,0 +1,1 @@
+{"version":3,"file":"createToken.d.ts","sourceRoot":"","sources":["../../../src/middleware/jwt/createToken.ts"],"names":[],"mappings":"AAEA,UAAU,OAAO;IACf,EAAE,EAAE,MAAM,CAAA;IACV,QAAQ,EAAE,MAAM,CAAA;CACjB;AAED,QAAA,MAAM,WAAW,GAAI,SAAS,OAAO,EAAE,WAAW,GAAG,WACiB,CAAA;AAEtE,eAAe,WAAW,CAAA"}

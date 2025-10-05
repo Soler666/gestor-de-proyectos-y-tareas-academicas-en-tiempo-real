@@ -1,0 +1,39 @@
+### Registro Tutor
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+
+{
+  "username": "tutor1",
+  "role": "Tutor",
+  "password": "12345"
+}
+
+### Registro Alumno
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+
+{
+  "username": "alumno1",
+  "role": "Alumno",
+  "password": "123456"
+}
+
+### Login Tutor
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "username": "tutor1",
+  "role": "Tutor",
+  "password": "12345"
+}
+
+### Login Alumno
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+  "username": "alumno1",
+  "role": "Alumno",
+  "password": "123456"
+}
