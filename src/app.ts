@@ -36,5 +36,6 @@ app.use('/tasks', taskRoutes)
 app.use('/api/chat', chatRoutes)
 
 //TODO: añadir validaciones con zod (listo)
+// comentario super cul
 
 export { app, port }
