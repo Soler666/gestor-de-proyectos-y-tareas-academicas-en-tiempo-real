@@ -11,8 +11,8 @@ interface CustomRequest extends Request {
 }
 
 export const getUsers: RequestHandler = async (req: CustomRequest, res) => {
-  if (!req.user || req.user.role !== 'Tutor') {
-    return res.status(403).json({ message: 'Solo tutores pueden ver la lista de usuarios' });
+  if (!req.user) {
+    return res.status(401).json({ message: 'No autenticado' });
   }
   const users = await userService.getAll()
   console.log('Users:', users);

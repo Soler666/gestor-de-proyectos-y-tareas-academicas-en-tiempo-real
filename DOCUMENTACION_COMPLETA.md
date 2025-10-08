@@ -82,15 +82,33 @@ La base de datos está diseñada siguiendo principios de modelado relacional, co
 - **Importancia**: Las tareas son la unidad básica de trabajo, permitiendo seguimiento granular del progreso y asignación de responsabilidades individuales.
 
 ### Mensaje de Chat (ChatMessage)
-- **Propósito**: Almacena la comunicación en tiempo real entre usuarios del sistema. Los mensajes de chat facilitan la colaboración y comunicación instantánea.
+- **Propósito**: Almacena la comunicación en tiempo real entre usuarios del sistema, incluyendo mensajes públicos y privados. Los mensajes de chat facilitan la colaboración y comunicación instantánea.
 - **Campos principales**:
   - `id`: Identificador único
   - `userId`: Referencia al usuario que envió el mensaje
   - `message`: Contenido del mensaje de texto
   - `timestamp`: Marca temporal automática de creación
+  - `recipientId`: ID del destinatario (solo para mensajes privados)
+  - `isPrivate`: Booleano que indica si el mensaje es privado
 - **Relaciones**:
-  - **Con Usuario**: Cada mensaje pertenece a un usuario específico
-- **Importancia**: El chat proporciona un canal de comunicación síncrona que complementa la gestión asíncrona de tareas y proyectos.
+  - **Con Usuario**: Cada mensaje pertenece a un usuario específico (remitente)
+  - **Con Usuario Destinatario**: Para mensajes privados, referencia al usuario destinatario
+- **Importancia**: El chat proporciona canales de comunicación síncrona (pública y privada) que complementan la gestión asíncrona de tareas y proyectos.
+
+### Notificación (Notification)
+- **Propósito**: Sistema de notificaciones en tiempo real para mantener informados a los usuarios sobre eventos importantes del sistema.
+- **Campos principales**:
+  - `id`: Identificador único
+  - `userId`: Referencia al usuario destinatario
+  - `message`: Contenido de la notificación
+  - `type`: Tipo de notificación (task_assigned, project_assigned, deadline_reminder, status_update, message, private_message, etc.)
+  - `isRead`: Estado de lectura de la notificación
+  - `createdAt`: Fecha y hora de creación
+  - `relatedId`: ID del elemento relacionado (tarea, proyecto, mensaje)
+  - `relatedType`: Tipo del elemento relacionado (task, project, message)
+- **Relaciones**:
+  - **Con Usuario**: Cada notificación pertenece a un usuario específico
+- **Importancia**: Las notificaciones mantienen a los usuarios informados sobre cambios en tareas, proyectos y mensajes, mejorando la comunicación y seguimiento del sistema.
 
 
 ## Funcionalidades del Sistema
@@ -123,17 +141,23 @@ La base de datos está diseñada siguiendo principios de modelado relacional, co
 
 ### 2. Gestión de Usuarios
 
+#### Obtener Lista de Usuarios
+- **Endpoint**: `GET /user/`
+- **Funcionalidad**: Devuelve lista de todos los usuarios del sistema.
+- **Permisos**: Usuario autenticado (necesario para funcionalidad de chat privado).
+- **Campos devueltos**: id, username, role.
+
 #### Obtener Usuario Actual
-- **Endpoint**: `GET /user`
+- **Endpoint**: `GET /user/me`
 - **Funcionalidad**: Devuelve información del usuario autenticado.
 - **Campos devueltos**: id, username, role.
 
 #### Actualizar Usuario
-- **Endpoint**: `PATCH /user`
+- **Endpoint**: `PATCH /user/me`
 - **Funcionalidad**: Permite actualizar username y role del usuario actual.
 
 #### Eliminar Usuario
-- **Endpoint**: `DELETE /user`
+- **Endpoint**: `DELETE /user/me`
 - **Funcionalidad**: Elimina la cuenta del usuario autenticado.
 
 ### 3. Gestión de Tareas
@@ -204,6 +228,47 @@ La base de datos está diseñada siguiendo principios de modelado relacional, co
 - **Middleware de autenticación**: Valida token al conectar.
 - **Eventos manejados**: connection, disconnect, public-message.
 
+#### Mensajes Privados
+- **Endpoint**: `GET /api/chat/private/:otherUserId`
+- **Funcionalidad**: Obtiene el historial de mensajes privados entre el usuario autenticado y otro usuario específico.
+- **Permisos**: Usuario autenticado.
+
+- **Endpoint**: `POST /api/chat/private`
+- **Funcionalidad**: Envía un mensaje privado a otro usuario.
+- **Campos requeridos**: message, recipientId.
+- **WebSocket Events**:
+  - `private-message`: Envía mensaje privado al destinatario.
+  - `private-message-sent`: Confirma envío al remitente.
+
+#### Sistema de Notificaciones en Tiempo Real
+- **Endpoint**: `GET /notifications`
+- **Funcionalidad**: Obtiene todas las notificaciones del usuario autenticado, ordenadas por fecha descendente.
+
+- **Endpoint**: `POST /notifications`
+- **Funcionalidad**: Crea una nueva notificación (usado internamente por el sistema).
+
+- **Endpoint**: `PUT /notifications/:id/read`
+- **Funcionalidad**: Marca una notificación específica como leída.
+
+- **Endpoint**: `PUT /notifications/read-all`
+- **Funcionalidad**: Marca todas las notificaciones del usuario como leídas.
+
+- **Endpoint**: `DELETE /notifications/:id`
+- **Funcionalidad**: Elimina una notificación específica.
+
+- **WebSocket Event**: `notification`
+- **Funcionalidad**: Emite notificaciones en tiempo real a usuarios conectados.
+- **Campos**: id, message, type, createdAt, relatedId, relatedType.
+
+#### Eventos de Notificación Automáticos
+El sistema genera notificaciones automáticamente para:
+- Asignación de tareas a alumnos
+- Asignación de proyectos a alumnos
+- Recordatorios de fechas límite
+- Cambios de estado en tareas/proyectos
+- Mensajes privados recibidos
+- Mensajes públicos (para todos los usuarios conectados)
+
 ## Cliente HTML Provisional
 
 El cliente HTML es una interfaz básica para pruebas funcionales que incluye:
@@ -225,6 +290,20 @@ El cliente HTML es una interfaz básica para pruebas funcionales que incluye:
 - **Formularios dinámicos**: Carga de dropdowns con usuarios y proyectos.
 - **Validaciones**: Verificación de campos requeridos y tokens válidos.
 - **Manejo de errores**: Alertas para errores de red y autenticación.
+
+## Lógica de Socket.io (Chat en Tiempo Real)
+
+La lógica principal de Socket.io se encuentra en el archivo `src/index.ts`. Esta configuración incluye:
+
+- Creación del servidor HTTP y la instancia de Socket.io con configuración CORS abierta.
+- Middleware de autenticación para sockets que valida el token JWT enviado en el handshake.
+- Manejo del evento `connection` para registrar la conexión de un usuario autenticado.
+- Escucha del evento `public-message` para recibir mensajes de chat:
+  - Guarda el mensaje en la base de datos usando Prisma.
+  - Emite el mensaje a todos los usuarios conectados con información del usuario, mensaje y timestamp.
+- Manejo del evento `disconnect` para registrar la desconexión del usuario.
+
+Este enfoque asegura que solo usuarios autenticados puedan enviar y recibir mensajes en tiempo real, manteniendo la integridad y seguridad del chat.
 
 ## Seguridad y Validación
 
@@ -258,7 +337,7 @@ El cliente HTML es una interfaz básica para pruebas funcionales que incluye:
    Crear archivo `.env` con:
    ```
    DATABASE_URL="file:./dev.db"
-   JWT_SECRET="tu-secreto-jwt-super-seguro"
+   JWT_SECRET="jwt-super-seguro"
    PORT=8000
    ```
 

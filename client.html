@@ -141,10 +141,91 @@
         #chat-view {
             display: block;
         }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .notification-bell {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 1001;
+        }
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            min-width: 18px;
+            text-align: center;
+        }
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .notification-dropdown ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .notification-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .notification-item.unread {
+            background: #f0f8ff;
+        }
+        .notification-item:hover {
+            background: #f9f9f9;
+        }
+        .chat-tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .chat-tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .chat-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .chat-tab-content {
+            display: none;
+        }
+        .chat-tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <h1>Chat con Socket.io y JWT</h1>
+    <h1>Plataforma de Gestión Académica</h1>
 
     <div id="login-section">
         <div class="container">
@@ -177,6 +258,17 @@
     </div>
 
     <div id="main-app" style="display: none;">
+        <div id="notification-bell" class="notification-bell">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C10.896 2 10 2.896 10 4V5.586L7.707 8.293C7.512 8.488 7.256 8.744 7.061 9.061L4.707 11.414C4.512 11.609 4.256 11.865 4.061 12.182L2 14.243V16H22V14.243L19.939 12.182C19.744 11.987 19.488 11.731 19.293 11.414L16.939 9.061C16.744 8.766 16.488 8.51 16.293 8.293L14 5.586V4C14 2.896 13.104 2 12 2ZM12 4C12.552 4 13 4.448 13 5V6H11V5C11 4.448 11.448 4 12 4ZM10.414 8H13.586L15.586 10H8.414L10.414 8ZM6.414 12H17.586L19 13.757V14H5V13.757L6.414 12Z" fill="#007bff"/>
+                <path d="M12 22C13.1046 22 14 21.1046 14 20H10C10 21.1046 10.8954 22 12 22Z" fill="#007bff"/>
+            </svg>
+            <span id="notification-count" class="notification-count">0</span>
+        </div>
+        <div id="notification-dropdown" class="notification-dropdown">
+            <ul id="notification-list"></ul>
+        </div>
+
         <div class="nav">
             <button id="show-chat">Chat Público</button>
             <button id="show-tasks">Tareas</button>
@@ -187,11 +279,31 @@
         <div id="chat-view" class="view">
         <div class="container">
             <div class="chat-section">
-                <h2>Chat Público</h2>
-                <div id="messages" class="chat-messages"></div>
-                <div class="chat-input">
-                    <input type="text" id="message" placeholder="Escribe un mensaje público">
-                    <button id="send">Enviar</button>
+                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+                    <h2 id="public-tab" style="cursor: pointer; color: #007bff; border-bottom: 2px solid #007bff; margin: 0; padding-bottom: 5px;">Chat Público</h2>
+                    <h2 id="private-tab" style="cursor: pointer; color: #555; margin: 0;" class="private-tab-inactive">Chat Privado</h2>
+                </div>
+
+                <div id="public-chat-content">
+                    <div id="messages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="message" placeholder="Escribe un mensaje público">
+                        <button id="send">Enviar</button>
+                    </div>
+                </div>
+
+                <div id="private-chat-content" style="display: none;">
+                    <div id="private-recipient-selector" style="margin-bottom: 10px;">
+                        <label for="private-recipient">Seleccionar destinatario:</label>
+                        <select id="private-recipient">
+                            <option value="">Selecciona un destinatario</option>
+                        </select>
+                    </div>
+                    <div id="private-messages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="private-message" placeholder="Escribe un mensaje privado">
+                        <button id="send-private">Enviar Privado</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -236,7 +348,7 @@
                         </div>
                         <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
                             <label for="task-due-date">Fecha límite:</label>
-                            <input type="date" id="task-due-date">
+                            <input type="datetime-local" id="task-due-date">
                         </div>
                         <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
                             <label for="task-priority">Prioridad:</label>
@@ -284,11 +396,11 @@
                         </div>
                         <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
                             <label for="project-start-date">Fecha de inicio:</label>
-                            <input type="date" id="project-start-date">
+                            <input type="datetime-local" id="project-start-date">
                         </div>
                         <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
                             <label for="project-end-date">Fecha de fin:</label>
-                            <input type="date" id="project-end-date">
+                            <input type="datetime-local" id="project-end-date">
                         </div>
                         <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
                             <label for="project-status">Estado:</label>
@@ -390,12 +502,275 @@
             messagesDiv.innerHTML += `<p class="message status">Error de conexión: ${err.message}</p>`;
         });
 
+        socket.on('notification', (notification) => {
+            showNotification(notification);
+        });
+
+        socket.on('private-message', (data) => {
+            displayPrivateMessage(data);
+        });
+
+        socket.on('private-message-sent', (data) => {
+            displayPrivateMessage(data);
+        });
+
+        socket.on('error', (error) => {
+            console.error('Socket error:', error.message);
+            alert('Error: ' + error.message);
+        });
+
+        function showNotification(notification) {
+            // Add to notifications array
+            notifications.unshift(notification);
+            unreadNotifications++;
+
+            // Update notification count
+            updateNotificationCount();
+
+            // Render notifications in dropdown
+            renderNotifications();
+
+            // Mostrar notificación en la UI
+            const notificationDiv = document.createElement('div');
+            notificationDiv.className = 'notification-item';
+            notificationDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #007bff;
+                color: white;
+                padding: 15px;
+                border-radius: 5px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                z-index: 1000;
+                max-width: 300px;
+                animation: slideIn 0.5s ease-out;
+            `;
+            notificationDiv.innerHTML = `
+                <strong>Notificación:</strong><br>
+                ${notification.message}<br>
+                <small>${new Date(notification.createdAt).toLocaleString()}</small>
+                <button onclick="this.parentElement.remove()" style="margin-top: 10px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Cerrar</button>
+            `;
+            document.body.appendChild(notificationDiv);
+
+            // Auto-remover después de 10 segundos
+            setTimeout(() => {
+                if (notificationDiv.parentElement) {
+                    notificationDiv.remove();
+                }
+            }, 10000);
+        }
+
+        function updateNotificationCount() {
+            const countElement = document.getElementById('notification-count');
+            countElement.textContent = unreadNotifications > 0 ? unreadNotifications : '';
+            countElement.style.display = unreadNotifications > 0 ? 'block' : 'none';
+        }
+
+        function renderNotifications() {
+            const notificationList = document.getElementById('notification-list');
+            notificationList.innerHTML = '';
+
+            if (notifications.length === 0) {
+                notificationList.innerHTML = '<li class="notification-item">No hay notificaciones</li>';
+                return;
+            }
+
+            notifications.forEach((notification, index) => {
+                const li = document.createElement('li');
+                li.className = `notification-item ${index < unreadNotifications ? 'unread' : ''}`;
+                li.innerHTML = `
+                    <strong>${notification.title || 'Notificación'}</strong><br>
+                    ${notification.message}<br>
+                    <small>${new Date(notification.createdAt).toLocaleString()}</small>
+                `;
+                li.addEventListener('click', () => {
+                    if (index < unreadNotifications) {
+                        unreadNotifications--;
+                        updateNotificationCount();
+                        li.classList.remove('unread');
+                    }
+                });
+                notificationList.appendChild(li);
+            });
+        }
+
+        function displayPrivateMessage(data) {
+            const privateMessagesDiv = document.getElementById('private-messages');
+            const messageElement = document.createElement('p');
+            messageElement.className = 'message';
+
+            if (data.senderId === currentUser.id) {
+                messageElement.innerHTML = `<strong>Tú:</strong> ${data.message} <small>(${new Date(data.timestamp).toLocaleTimeString()})</small>`;
+            } else {
+                messageElement.innerHTML = `<strong>${data.user}:</strong> ${data.message} <small>(${new Date(data.timestamp).toLocaleTimeString()})</small>`;
+            }
+
+            privateMessagesDiv.appendChild(messageElement);
+            privateMessagesDiv.scrollTop = privateMessagesDiv.scrollHeight;
+        }
+
+        async function loadPrivateMessages(recipientId) {
+            try {
+                const response = await axios.get(`http://localhost:8000/api/chat/private/${recipientId}`, { headers: getAuthHeaders() });
+                const messages = response.data;
+                const privateMessagesDiv = document.getElementById('private-messages');
+                privateMessagesDiv.innerHTML = '';
+
+                messages.forEach(msg => {
+                    const messageElement = document.createElement('p');
+                    messageElement.className = 'message';
+
+                    if (msg.senderId === currentUser.id) {
+                        messageElement.innerHTML = `<strong>Tú:</strong> ${msg.message} <small>(${new Date(msg.timestamp).toLocaleTimeString()})</small>`;
+                    } else {
+                        messageElement.innerHTML = `<strong>${msg.user.username}:</strong> ${msg.message} <small>(${new Date(msg.timestamp).toLocaleTimeString()})</small>`;
+                    }
+
+                    privateMessagesDiv.appendChild(messageElement);
+                });
+
+                privateMessagesDiv.scrollTop = privateMessagesDiv.scrollHeight;
+            } catch (error) {
+                console.error('Error loading private messages:', error);
+            }
+        }
+
+        async function loadUsersForPrivateChat() {
+            const select = document.getElementById('private-recipient');
+            select.innerHTML = '<option value="">Selecciona un destinatario</option>';
+
+            try {
+                const users = await loadUsers();
+                // Filter out current user
+                const availableUsers = users.filter(user => user.id !== currentUser.id);
+
+                if (availableUsers.length === 0) {
+                    select.innerHTML = '<option value="">No hay usuarios disponibles</option>';
+                } else {
+                    // Separate users by role
+                    const tutors = availableUsers.filter(user => user.role && user.role.toLowerCase() === 'tutor');
+                    const students = availableUsers.filter(user => user.role && user.role.toLowerCase() === 'alumno');
+
+                    // Add tutors group
+                    if (tutors.length > 0) {
+                        const tutorGroup = document.createElement('optgroup');
+                        tutorGroup.label = 'Tutores';
+                        tutors.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = user.username;
+                            tutorGroup.appendChild(option);
+                        });
+                        select.appendChild(tutorGroup);
+                    }
+
+                    // Add students group
+                    if (students.length > 0) {
+                        const studentGroup = document.createElement('optgroup');
+                        studentGroup.label = 'Alumnos';
+                        students.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = user.username;
+                            studentGroup.appendChild(option);
+                        });
+                        select.appendChild(studentGroup);
+                    }
+                }
+            } catch (error) {
+                select.innerHTML = '<option value="">Error cargando usuarios</option>';
+                console.error('Error loading users for private chat:', error);
+            }
+        }
+
+        // Notification bell click handler
+        document.getElementById('notification-bell').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notification-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notification-dropdown');
+            const bell = document.getElementById('notification-bell');
+            if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Chat tab event listeners
+        document.getElementById('public-tab').addEventListener('click', () => {
+            switchTab('public');
+        });
+
+        document.getElementById('private-tab').addEventListener('click', () => {
+            switchTab('private');
+        });
+
+        function switchTab(tab) {
+            // Update tab styles
+            const publicTab = document.getElementById('public-tab');
+            const privateTab = document.getElementById('private-tab');
+
+            if (tab === 'public') {
+                publicTab.style.color = '#007bff';
+                publicTab.style.borderBottom = '2px solid #007bff';
+                publicTab.style.paddingBottom = '5px';
+                privateTab.style.color = '#555';
+                privateTab.style.borderBottom = 'none';
+                privateTab.classList.add('private-tab-inactive');
+            } else {
+                privateTab.style.color = '#007bff';
+                privateTab.style.borderBottom = '2px solid #007bff';
+                privateTab.style.paddingBottom = '5px';
+                privateTab.classList.remove('private-tab-inactive');
+                publicTab.style.color = '#555';
+                publicTab.style.borderBottom = 'none';
+            }
+
+            // Hide/show content
+            document.getElementById('public-chat-content').style.display = tab === 'public' ? 'block' : 'none';
+            document.getElementById('private-chat-content').style.display = tab === 'private' ? 'block' : 'none';
+
+            // Load private chat data if switching to private tab
+            if (tab === 'private') {
+                loadUsersForPrivateChat();
+            }
+        }
+
+        // Private chat event listeners
+        document.getElementById('private-recipient').addEventListener('change', async (e) => {
+            const recipientId = e.target.value;
+            if (recipientId) {
+                await loadPrivateMessages(recipientId);
+            } else {
+                document.getElementById('private-messages').innerHTML = '';
+            }
+        });
+
+        document.getElementById('send-private').addEventListener('click', () => {
+            const recipientId = document.getElementById('private-recipient').value;
+            const message = document.getElementById('private-message').value;
+            if (!recipientId) {
+                alert('Selecciona un destinatario');
+                return;
+            }
+            if (!message) return;
+            socket.emit('private-message', { recipientId: parseInt(recipientId), message });
+            document.getElementById('private-message').value = '';
+        });
+
         let currentUser = null;
         let currentRole = null;
         let editingTaskId = null;
         let editingProjectId = null;
         let isSavingProject = false;
         let isRecentlySaved = false;
+        let notifications = [];
+        let unreadNotifications = 0;
 
         function decodeJWT(token) {
             try {
@@ -518,6 +893,18 @@
             }
         }
 
+        async function loadNotifications() {
+            try {
+                const response = await axios.get('http://localhost:8000/notifications', { headers: getAuthHeaders() });
+                notifications = response.data;
+                unreadNotifications = notifications.filter(n => !n.read).length;
+                updateNotificationCount();
+                renderNotifications();
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
         async function loadUsersForTaskForm() {
             const select = document.getElementById('task-responsible');
             select.innerHTML = '<option value="">Cargando...</option>';
@@ -561,6 +948,22 @@
             }
         }
 
+        function calculateCountdown(endDate) {
+            const now = new Date();
+            const end = new Date(endDate);
+            const diff = end - now;
+
+            if (diff <= 0) {
+                return 'Expirado';
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            return `${days} días, ${hours} horas, ${minutes} minutos`;
+        }
+
         function renderTasks(tasks) {
             const tasksDiv = document.getElementById('tasks');
             tasksDiv.innerHTML = '';
@@ -583,7 +986,7 @@
                     <p>Alumno asignado: ${task.responsible?.username || 'N/A'}</p>
                     <p>Estado: ${task.status}</p>
                     <p>Prioridad: ${task.priority}</p>
-                    ${task.dueDate ? `<p>Fecha límite: ${new Date(task.dueDate).toLocaleDateString()}</p>` : ''}
+                    ${task.dueDate ? `<p>Fecha límite: ${new Date(task.dueDate).toLocaleDateString()} - Cuenta regresiva: ${calculateCountdown(task.dueDate)}</p>` : ''}
                     ${currentRole === 'Tutor' ? `<button onclick="editTask(${task.id})">Editar</button> <button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
                 `;
                 tasksDiv.appendChild(taskDiv);
@@ -594,11 +997,7 @@
             const projectsDiv = document.getElementById('projects');
             projectsDiv.innerHTML = '';
             let filteredProjects = projects;
-            if (currentRole === 'Alumno') {
-                // Filtrar proyectos que tienen tareas asignadas al alumno
-                const studentProjectIds = new Set(tasks.filter(task => task.responsibleId === currentUser.id && task.projectId).map(task => task.projectId));
-                filteredProjects = projects.filter(project => studentProjectIds.has(project.id));
-            }
+            // La lógica de filtrado ya se hace en el backend
             if (filteredProjects.length === 0) {
                 projectsDiv.innerHTML = currentRole === 'Alumno' ? '<p>No tienes proyectos asignados aún.</p>' : '<p>No hay proyectos disponibles.</p>';
                 return;
@@ -616,8 +1015,9 @@
                     <p>Estado: ${project.status}</p>
                     <p>Tutor: ${tutorName}</p>
                     <p>Participantes: ${participantsList}</p>
-                    ${project.startDate ? `<p>Inicio: ${new Date(project.startDate).toLocaleDateString()}</p>` : ''}
-                    ${project.endDate ? `<p>Fin: ${new Date(project.endDate).toLocaleDateString()}</p>` : ''}
+                    ${project.startDate ? `<p>Inicio: ${new Date(project.startDate).toLocaleString()}</p>` : ''}
+                    ${project.endDate ? `<p>Fin: ${new Date(project.endDate).toLocaleString()}</p>` : ''}
+                    ${project.endDate ? `<p>Cuenta regresiva: ${calculateCountdown(project.endDate)}</p>` : ''}
                     ${currentRole === 'Tutor' ? `<button onclick="editProject(${project.id})">Editar</button> <button onclick="deleteProject(${project.id})">Eliminar</button>` : ''}
                 `;
                 projectsDiv.appendChild(projectDiv);
@@ -686,6 +1086,7 @@
                 document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
                 document.getElementById('chat-view').style.display = 'block';
                 await loadChatMessages();
+                await loadNotifications();
             } catch (error) {
                 messagesDiv.innerHTML += `<p>Error en login: ${error.response?.data?.message || error.message}</p>`;
             }
@@ -1029,8 +1430,8 @@
                 // Populate form
                 document.getElementById('project-name').value = project.name;
                 document.getElementById('project-description').value = project.description || '';
-                document.getElementById('project-start-date').value = project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '';
-                document.getElementById('project-end-date').value = project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '';
+                document.getElementById('project-start-date').value = project.startDate ? new Date(project.startDate).toISOString().slice(0,16) : '';
+                document.getElementById('project-end-date').value = project.endDate ? new Date(project.endDate).toISOString().slice(0,16) : '';
                 document.getElementById('project-status').value = project.status;
 
                 // Load participants

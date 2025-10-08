@@ -5,6 +5,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import prisma from './config/database';
+import { setIO } from './config/socket';
+import { createAndEmitNotification } from './controller/notificationController';
 
 type UserData = JwtPayload & { username: string };
 
@@ -15,6 +17,7 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+setIO(io);
 
 // Middleware para autenticar usuarios en el socket
 io.use((socket, next) => {
@@ -36,14 +39,26 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   const userData = socket.data.user as UserData;
   console.log(`Usuario conectado: ${userData.username}`);
+  // Unirse a la room del usuario para notificaciones y mensajes privados
+  socket.join(`user_${userData.id}`);
+
   // Canal público
   socket.on('public-message', async (msg) => {
     try {
       // Guardar mensaje en la base de datos
-      await prisma.chatMessage.create({
+      const savedMessage = await prisma.chatMessage.create({
         data: {
           userId: userData.id,
           message: msg,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              role: true,
+            },
+          },
         },
       });
       // Emitir a todos los usuarios conectados
@@ -53,10 +68,101 @@ io.on('connection', (socket) => {
         message: msg,
         timestamp: new Date(),
       });
+      // Emitir notificaciones a todos los usuarios conectados excepto el remitente
+      const connectedSockets = await io.fetchSockets();
+      for (const s of connectedSockets) {
+        const socketUser = s.data.user as UserData;
+        if (socketUser && socketUser.id !== userData.id) {
+          await createAndEmitNotification(
+            socketUser.id,
+            `${userData.username} envió un mensaje: ${msg}`,
+            'message',
+            savedMessage.id,
+            'message'
+          );
+        }
+      }
     } catch (error) {
       console.error('Error saving message:', error);
     }
   });
+
+  // Mensaje privado
+  socket.on('private-message', async (data) => {
+    try {
+      const { message, recipientId } = data;
+
+      // Verificar que el destinatario existe
+      const recipient = await prisma.user.findUnique({
+        where: { id: recipientId },
+      });
+
+      if (!recipient) {
+        socket.emit('error', { message: 'Destinatario no encontrado' });
+        return;
+      }
+
+      // Guardar mensaje privado en la base de datos
+      const savedMessage = await prisma.chatMessage.create({
+        data: {
+          userId: userData.id,
+          message,
+          recipientId,
+          isPrivate: true,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              role: true,
+            },
+          },
+          recipient: {
+            select: {
+              id: true,
+              username: true,
+              role: true,
+            },
+          },
+        },
+      });
+
+      // Emitir al destinatario
+      io.to(`user_${recipientId}`).emit('private-message', {
+        id: savedMessage.id,
+        user: userData.username,
+        role: userData.role,
+        message,
+        timestamp: new Date(),
+        recipientId,
+      });
+
+      // También emitir al remitente para confirmar
+      socket.emit('private-message-sent', {
+        id: savedMessage.id,
+        user: userData.username,
+        role: userData.role,
+        message,
+        timestamp: new Date(),
+        recipientId,
+      });
+
+      // Crear notificación para el destinatario
+      await createAndEmitNotification(
+        recipientId,
+        `${userData.username} te envió un mensaje privado`,
+        'private_message',
+        savedMessage.id,
+        'message'
+      );
+
+    } catch (error) {
+      console.error('Error saving private message:', error);
+      socket.emit('error', { message: 'Error al enviar mensaje privado' });
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`Usuario desconectado: ${userData.username}`);
   });

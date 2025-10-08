@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes'
 import projectRoutes from './routes/projectRoutes'
 import taskRoutes from './routes/taskRoutes'
 import chatRoutes from './routes/chatRoutes'
+import notificationRoutes from './routes/notificationRoutes'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -34,8 +35,8 @@ app.use('/test', testRoutes)
 app.use('/projects', projectRoutes)
 app.use('/tasks', taskRoutes)
 app.use('/api/chat', chatRoutes)
+app.use('/notifications', notificationRoutes)
 
 //TODO: añadir validaciones con zod (listo)
-// comentario super cul
 
 export { app, port }

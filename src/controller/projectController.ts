@@ -1,6 +1,7 @@
 import { RequestHandler, Request } from 'express';
 import projectService from '../service/projectService';
 import { projectSchema } from '../model/Project/projectModel';
+import { createAndEmitNotification } from './notificationController';
 
 interface CustomRequest extends Request {
   user?: {
@@ -25,6 +26,18 @@ export const createProject: RequestHandler = async (req: CustomRequest, res, nex
     let participants = Array.isArray(data.participants) ? data.participants.filter((id: number) => id !== user.id) : [];
     const parsed = projectSchema.parse({ ...data, participants });
     const project = await projectService.create(parsed);
+    // Send notifications to all participants
+    if (participants && participants.length > 0) {
+      for (const participantId of participants) {
+        await createAndEmitNotification(
+          participantId,
+          `Has sido asignado al proyecto: ${project.name}`,
+          'project_assigned',
+          project.id,
+          'project'
+        );
+      }
+    }
     res.status(201).json(project);
   } catch (error) {
     next(error);

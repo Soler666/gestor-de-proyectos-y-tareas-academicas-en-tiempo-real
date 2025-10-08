@@ -1,6 +1,7 @@
 import { RequestHandler, Request } from 'express';
 import taskService from '../service/taskService';
 import { taskSchema } from '../model/Task/taskModel';
+import { createAndEmitNotification } from './notificationController';
 
 interface CustomRequest extends Request {
   user?: {
@@ -24,6 +25,16 @@ export const createTask: RequestHandler = async (req: CustomRequest, res, next) 
     console.log('Data received:', data);
     const parsed = taskSchema.parse(data);
     const task = await taskService.create(parsed);
+    // Send notification to the responsible student
+    if (task.responsibleId) {
+      await createAndEmitNotification(
+        task.responsibleId,
+        `Se te ha asignado una nueva tarea: ${task.name}`,
+        'task_assigned',
+        task.id,
+        'task'
+      );
+    }
     res.status(201).json(task);
   } catch (error) {
     console.log('Error en createTask:', error);

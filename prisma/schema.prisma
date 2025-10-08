@@ -12,15 +12,17 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique
-  role      String
-  password  String
-  projects      Project[] @relation("ProjectParticipants")
-  tasks         Task[]    @relation("UserTasks")
-  tutorProjects Project[] @relation("ProjectTutor")
-  tutoredTasks  Task[]    @relation("TutorTasks")
-  chatMessages  ChatMessage[] @relation("ChatUser")
+  id             Int     @id @default(autoincrement())
+  username       String  @unique
+  role           String
+  password       String
+  projects       Project[] @relation("ProjectParticipants")
+  tasks          Task[]    @relation("UserTasks")
+  tutorProjects  Project[] @relation("ProjectTutor")
+  tutoredTasks   Task[]    @relation("TutorTasks")
+  chatMessages   ChatMessage[] @relation("ChatUser")
+  receivedMessages ChatMessage[] @relation("MessageRecipient")
+  notifications  Notification[] @relation("UserNotifications")
 }
 
 model Project {
@@ -53,9 +55,24 @@ model Task {
 }
 
 model ChatMessage {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation("ChatUser", fields: [userId], references: [id])
-  message   String
-  timestamp DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation("ChatUser", fields: [userId], references: [id])
+  message     String
+  timestamp   DateTime @default(now())
+  recipientId Int?     // Para mensajes privados
+  recipient   User?    @relation("MessageRecipient", fields: [recipientId], references: [id])
+  isPrivate   Boolean  @default(false)
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation("UserNotifications", fields: [userId], references: [id])
+  message     String
+  type        String   // task_assigned, project_assigned, deadline_reminder, status_update, etc.
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  relatedId   Int?     // ID de la tarea o proyecto relacionado
+  relatedType String?  // "task" o "project"
 }
