@@ -1,7 +1,0 @@
-- [x] Create src/routes/chatRoutes.ts with GET /messages route pointing to getChatMessages
-- [x] Register /api/chat route in src/app.ts
-- [x] Add debug logs in loadChatMessages() in client.html
-- [x] Modify private chat selector to include all users (tutors and students) and change label to "Selecciona un destinatario"
-- [x] Fix authentication middleware for chat routes to allow private messaging
-- [x] Allow students to access user list for private chat functionality
-- [ ] Test login/logout with multiple users to verify messages persist
