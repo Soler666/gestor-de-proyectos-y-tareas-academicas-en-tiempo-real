@@ -172,6 +172,6 @@ io.on('connection', (socket) => {
 
 app.use(errorHanddler);
 httpServer.listen(port, () => {
-  console.log('🚀 Servidor corriendo en http://localhost:' + port);
-  console.log('🟢 Socket.io habilitado en el mismo puerto');
+  console.log('Servidor corriendo en http://localhost:' + port);
+  console.log('Socket.io habilitado en el mismo puerto');
 });

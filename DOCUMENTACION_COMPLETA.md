@@ -175,23 +175,23 @@ La base de datos está diseñada siguiendo principios de modelado relacional, co
 #### Listado de Tareas
 - **Endpoint**: `GET /tasks`
 - **Funcionalidad**:
-  - Tutores ven tareas que crearon.
+  - Tutores ven tareas que crearon, agrupadas lógicamente (una entrada por tarea conceptual con lista de responsables y sus estados individuales).
   - Alumnos ven tareas asignadas a ellos.
-- **Incluye**: Información del proyecto, responsable y tutor.
+- **Incluye**: Información del proyecto, responsable y tutor. Para tutores, incluye lista de responsables con sus estados individuales.
 
 #### Obtener Tarea por ID
 - **Endpoint**: `GET /tasks/:id`
-- **Funcionalidad**: Devuelve detalles completos de una tarea específica.
+- **Funcionalidad**: Devuelve detalles completos de una tarea específica. Para tutores, si la tarea pertenece a un grupo lógico, devuelve la vista agregada con lista de responsables.
 
 #### Actualización de Tareas
 - **Endpoint**: `PUT /tasks/:id`
 - **Permisos**: Solo tutores pueden actualizar.
-- **Funcionalidad**: Modifica cualquier campo de la tarea.
+- **Funcionalidad**: Modifica cualquier campo de la tarea. Emite eventos de socket para notificar cambios en tiempo real.
 
 #### Eliminación de Tareas
 - **Endpoint**: `DELETE /tasks/:id`
 - **Permisos**: Solo tutores pueden eliminar.
-- **Funcionalidad**: Elimina la tarea de la base de datos.
+- **Funcionalidad**: Elimina la tarea de la base de datos. Emite eventos de socket para notificar eliminación en tiempo real.
 
 ### 4. Gestión de Proyectos
 
