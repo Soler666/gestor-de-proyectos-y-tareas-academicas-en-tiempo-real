@@ -3,7 +3,6 @@ import path from 'path'
 import showRequests from './middleware/showRequest'
 import cors from 'cors'
 import authRouter from './routes/authRoutes'
-import testRoutes from './routes/testRoutes'
 import userRoutes from './routes/userRoutes'
 import projectRoutes from './routes/projectRoutes'
 import taskRoutes from './routes/taskRoutes'
@@ -31,7 +30,6 @@ app.get('/ping', (_req: Request, res: Response) => {
 
 app.use('/auth', authRouter)
 app.use('/user', userRoutes)
-app.use('/test', testRoutes)
 app.use('/projects', projectRoutes)
 app.use('/tasks', taskRoutes)
 app.use('/api/chat', chatRoutes)
