@@ -16,6 +16,14 @@ const errorHanddler: ErrorRequestHandler = (error: Error, _req, res, _next) => {
 
   if (error.constructor.name === 'PrismaClientKnownRequestError') {
     switch (error.code) {
+      case 'P2025':
+        message = 'Elemento no encontrado en la base de datos'
+        status = 404
+        break;
+      case 'P2003':
+        message = `Restricción de llave foránea fallida, el ${error.meta?.target} no existe` 
+        status = 400
+        break;
       case 'P2002':
         message = `el ${error.meta?.target} ya está en uso` 
         status = 400

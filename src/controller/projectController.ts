@@ -16,7 +16,7 @@ export const createProject: RequestHandler = async (req: CustomRequest, res, nex
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
-    if (req.user.role !== 'Tutor') {
+    if (req.user.role.toLowerCase() !== 'tutor') {
       return res.status(403).json({ message: 'Solo los tutores pueden crear proyectos.' });
     }
     const user = req.user;
@@ -48,10 +48,9 @@ export const getProjects: RequestHandler = async (req: CustomRequest, res, next)
   try {
     let projects = await projectService.getAll();
     if (req.user && 'role' in req.user) {
-      if (req.user.role === 'Tutor') {
-        // Solo proyectos creados por el tutor
+      if (req.user.role.toLowerCase() === 'tutor') {
         projects = projects.filter(p => p.tutorId === req.user!.id);
-      } else if (req.user.role === 'Alumno') {
+      } else if (req.user.role.toLowerCase() === 'alumno') {
         // Solo proyectos donde el alumno es participante
         projects = projects.filter(p => Array.isArray(p.participants) && p.participants.some((u: {id:number}) => u.id === req.user!.id));
       } else {
