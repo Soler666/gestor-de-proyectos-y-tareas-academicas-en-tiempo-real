@@ -250,20 +250,6 @@ src/
 - **Middleware de autorización** basado en roles
 - **CORS configurado** para desarrollo
 
-## 📱 Cliente Provisional
-
-Se incluye un cliente HTML básico para pruebas funcionales que incluye:
-- Formularios de autenticación
-- Gestión de tareas y proyectos
-- **Sistema de entregas**: Los estudiantes pueden enviar tareas con archivos adjuntos
-- Chat en tiempo real
-- Interfaz responsive
-
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
-
 
 ## 📞 Contacto
 
