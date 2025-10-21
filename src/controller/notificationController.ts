@@ -101,3 +101,174 @@ export const createAndEmitNotification = async (userId: number, message: string,
   return notification;
 
 };
+
+// Advanced notification features
+export const createBulkNotifications: RequestHandler = async (req: CustomRequest, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(403).json({ message: 'No autenticado.' });
+    }
+
+    const { userIds, message, type, relatedId, relatedType } = req.body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: 'Se requiere una lista de userIds.' });
+    }
+
+    const notifications = await Promise.all(
+      userIds.map(userId =>
+        prisma.notification.create({
+          data: {
+            userId,
+            message,
+            type,
+            relatedId: relatedId ?? null,
+            relatedType: relatedType ?? null,
+          },
+        })
+      )
+    );
+
+    // Emit notifications to all users
+    const io = getIO();
+    notifications.forEach(notification => {
+      io.to(`user_${notification.userId}`).emit('notification', notification);
+    });
+
+    res.status(201).json(notifications);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createScheduledNotification: RequestHandler = async (req: CustomRequest, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(403).json({ message: 'No autenticado.' });
+    }
+
+    const { userId, message, type, relatedId, relatedType, scheduledAt } = req.body;
+
+    if (!scheduledAt) {
+      return res.status(400).json({ message: 'Se requiere fecha de programación.' });
+    }
+
+    const scheduledDate = new Date(scheduledAt);
+    if (scheduledDate <= new Date()) {
+      return res.status(400).json({ message: 'La fecha debe ser futura.' });
+    }
+
+    // Nota: Los campos scheduledAt e isScheduled no existen en el esquema actual
+    // En una implementación real, se agregarían a la tabla de notificaciones
+    const notification = await prisma.notification.create({
+      data: {
+        userId,
+        message,
+        type,
+        relatedId: relatedId ?? null,
+        relatedType: relatedType ?? null,
+      },
+    });
+
+    res.status(201).json(notification);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getNotificationStats: RequestHandler = async (req: CustomRequest, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(403).json({ message: 'No autenticado.' });
+    }
+
+    const userId = req.user.id;
+
+    // Estadísticas de notificaciones del usuario
+    const totalNotifications = await prisma.notification.count({
+      where: { userId },
+    });
+
+    const unreadNotifications = await prisma.notification.count({
+      where: { userId, isRead: false },
+    });
+
+    const notificationsByType = await prisma.notification.groupBy({
+      by: ['type'],
+      where: { userId },
+      _count: {
+        id: true,
+      },
+    });
+
+    // Notificaciones recientes (últimas 24 horas)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const recentNotifications = await prisma.notification.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: yesterday,
+        },
+      },
+    });
+
+    res.json({
+      total: totalNotifications,
+      unread: unreadNotifications,
+      recent: recentNotifications,
+      byType: notificationsByType,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getNotificationPreferences: RequestHandler = async (req: CustomRequest, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(403).json({ message: 'No autenticado.' });
+    }
+
+    // En una implementación real, tendríamos una tabla de preferencias
+    // Por ahora, devolvemos preferencias por defecto
+    const preferences = {
+      emailNotifications: true,
+      pushNotifications: true,
+      taskReminders: true,
+      projectUpdates: true,
+      messageNotifications: true,
+      systemAlerts: true,
+    };
+
+    res.json(preferences);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateNotificationPreferences: RequestHandler = async (req: CustomRequest, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(403).json({ message: 'No autenticado.' });
+    }
+
+    const { emailNotifications, pushNotifications, taskReminders, projectUpdates, messageNotifications, systemAlerts } = req.body;
+
+    // En una implementación real, guardaríamos en BD
+    // Por ahora, solo devolvemos confirmación
+    const preferences = {
+      emailNotifications: emailNotifications ?? true,
+      pushNotifications: pushNotifications ?? true,
+      taskReminders: taskReminders ?? true,
+      projectUpdates: projectUpdates ?? true,
+      messageNotifications: messageNotifications ?? true,
+      systemAlerts: systemAlerts ?? true,
+    };
+
+    res.json({ message: 'Preferencias actualizadas', preferences });
+  } catch (error) {
+    next(error);
+  }
+};

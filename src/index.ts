@@ -7,6 +7,9 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import prisma from './config/database';
 import { setIO } from './config/socket';
 import { createAndEmitNotification } from './controller/notificationController';
+import { ReminderService } from './service/reminderService';
+import { ActivityLogService } from './service/activityLogService';
+import { initializeNotificationScheduler } from './service/notificationScheduler';
 
 type UserData = JwtPayload & { username: string };
 
@@ -170,8 +173,15 @@ io.on('connection', (socket) => {
   });
 });
 
+// Inicializar el servicio de recordatorios
+const reminderService = ReminderService.getInstance();
+
+// Inicializar el servicio de programación de notificaciones
+initializeNotificationScheduler();
+
 app.use(errorHanddler);
 httpServer.listen(port, () => {
   console.log('Servidor corriendo en http://localhost:' + port);
   console.log('Socket.io habilitado en el mismo puerto');
+  console.log('Sistema de recordatorios automáticos activado');
 });

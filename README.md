@@ -26,6 +26,9 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - Asignación de responsables y tutores
 - Seguimiento de prioridades y estados
 - Fechas límite y recordatorios automáticos
+- **Sistema de Entregas**: Los estudiantes pueden enviar tareas con archivos adjuntos y contenido textual
+- **Calificación de Entregas**: Los tutores pueden calificar entregas con retroalimentación
+- **Gestión de Archivos**: Subida y descarga segura de archivos (PDF, Word, Excel, etc.)
 
 ### 💬 Sistema de Chat en Tiempo Real
 - **Chat público** para comunicación general
@@ -38,6 +41,13 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - Marcado como leído y gestión de notificaciones
 - Entrega en tiempo real vía WebSocket
 - Tipos: asignaciones, recordatorios, mensajes, actualizaciones
+
+### ⏰ Sistema de Recordatorios
+- **Recordatorios automáticos** para tareas y proyectos próximos a vencer (24h y 1h antes)
+- **Recordatorios personalizados** programables por fecha y hora
+- **CRUD completo** de recordatorios con persistencia en base de datos
+- **Integración con notificaciones** en tiempo real
+- **Programación con Cron** para ejecución automática
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -132,6 +142,25 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - `PUT /notifications/:id/read` - Marcar como leído
 - `PUT /notifications/read-all` - Marcar todas como leídas
 - `DELETE /notifications/:id` - Eliminar notificación
+
+#### Recordatorios
+- `GET /reminders` - Recordatorios del usuario
+- `POST /reminders` - Crear recordatorio personalizado
+- `GET /reminders/:id` - Detalles de recordatorio
+- `PUT /reminders/:id` - Actualizar recordatorio
+- `DELETE /reminders/:id` - Eliminar recordatorio
+- `POST /reminders/schedule` - Programar recordatorio (legacy)
+- `DELETE /reminders/job/:jobId` - Cancelar recordatorio programado (legacy)
+
+#### Entregas
+- `POST /submissions` - Crear entrega (con subida de archivos)
+- `GET /submissions/student` - Obtener entregas del estudiante actual
+- `GET /submissions/grading` - Obtener entregas pendientes de calificación (tutores)
+- `PUT /submissions/:id/grade` - Calificar una entrega
+- `GET /submissions/:id` - Obtener entrega específica
+- `DELETE /submissions/:id` - Eliminar entrega
+- `GET /submissions/:submissionId/files/:fileId/download` - Descargar archivo
+- `GET /submissions/stats` - Obtener estadísticas de entregas
 
 ### Eventos WebSocket
 

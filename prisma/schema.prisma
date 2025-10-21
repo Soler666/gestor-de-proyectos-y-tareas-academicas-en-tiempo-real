@@ -23,6 +23,10 @@ model User {
   chatMessages   ChatMessage[] @relation("ChatUser")
   receivedMessages ChatMessage[] @relation("MessageRecipient")
   notifications  Notification[] @relation("UserNotifications")
+  reminders      Reminder[] @relation("UserReminders")
+  studentSubmissions Submission[] @relation("StudentSubmissions")
+  tutorGradings  Submission[] @relation("TutorGradings")
+  activityLogs   ActivityLog[] @relation("UserActivityLogs")
 }
 
 model Project {
@@ -52,6 +56,7 @@ model Task {
   responsibleId Int
   tutor       User?    @relation("TutorTasks", fields: [tutorId], references: [id])
   tutorId     Int?
+  submissions Submission[]
 }
 
 model ChatMessage {
@@ -75,4 +80,59 @@ model Notification {
   createdAt   DateTime @default(now())
   relatedId   Int?     // ID de la tarea o proyecto relacionado
   relatedType String?  // "task" o "project"
+}
+
+model Reminder {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation("UserReminders", fields: [userId], references: [id])
+  title       String
+  description String?
+  scheduledAt DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  relatedId   Int?     // ID de la tarea o proyecto relacionado
+  relatedType String?  // "task" o "project"
+}
+
+model File {
+  id          Int      @id @default(autoincrement())
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String
+  uploadedAt  DateTime @default(now())
+  submission  Submission? @relation(fields: [submissionId], references: [id])
+  submissionId Int?
+}
+
+model Submission {
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  task        Task     @relation(fields: [taskId], references: [id])
+  studentId   Int
+  student     User     @relation("StudentSubmissions", fields: [studentId], references: [id])
+  submittedAt DateTime @default(now())
+  content     String?  // Texto adicional del estudiante
+  grade       Float?   // Calificación del tutor (0-100)
+  feedback    String?  // Comentarios del tutor
+  gradedAt    DateTime?
+  gradedBy    Int?     // ID del tutor que calificó
+  gradedByUser User?   @relation("TutorGradings", fields: [gradedBy], references: [id])
+  status      String   @default("submitted") // "submitted", "graded", "returned"
+  files       File[]
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation("UserActivityLogs", fields: [userId], references: [id])
+  action      String   // CREATE, UPDATE, DELETE, STATUS_CHANGE, ASSIGN, etc.
+  entityType  String   // TASK, PROJECT, USER, CHAT_MESSAGE, etc.
+  entityId    Int      // ID de la entidad afectada
+  details     String?  // Descripción detallada de la actividad
+  oldValues   String?  // Valores anteriores en formato JSON
+  newValues   String?  // Valores nuevos en formato JSON
+  timestamp   DateTime @default(now())
 }

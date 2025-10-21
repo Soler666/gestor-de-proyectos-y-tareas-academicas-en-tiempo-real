@@ -114,6 +114,18 @@
             border-radius: 4px;
             background: #fafafa;
         }
+        .task-submit-btn, .project-submit-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .task-submit-btn:hover, .project-submit-btn:hover {
+            background: #218838;
+        }
         .task-item h4, .project-item h4 {
             margin: 0 0 10px 0;
         }
@@ -134,6 +146,143 @@
         }
         .nav button {
             margin: 0 10px;
+        }
+        .submission-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .submission-modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .file-drop-area {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+            transition: border-color 0.3s;
+        }
+        .file-drop-area.dragover {
+            border-color: #0056b3;
+            background: #f0f8ff;
+        }
+        .file-list {
+            margin-top: 10px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .remove-file {
+            color: red;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .submission-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .submission-status.submitted {
+            background: #d4edda;
+            color: #155724;
+        }
+        .submission-status.graded {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .submission-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .submission-status.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .grade-form {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .grade-input {
+            width: 80px;
+            padding: 5px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .submissions-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .submission-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .submission-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .submission-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .file-input {
+            margin-top: 10px;
+        }
+        .reports-section, .reminders-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .report-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .reminder-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .reminder-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #fafafa;
         }
         .view {
             display: none;
@@ -219,8 +368,219 @@
         .chat-tab-content {
             display: none;
         }
-        .chat-tab-content.active {
+        .notifications-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .notification-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .notification-form h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
             display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .preferences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .preference-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .preference-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .bulk-users-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .user-checkbox {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .submission-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .submission-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .submission-form h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .submission-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .submission-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .submission-item h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+        .submission-item p {
+            margin: 5px 0;
+        }
+        .file-list {
+            margin-top: 10px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .submission-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .submission-modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .file-drop-area {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+            transition: border-color 0.3s;
+        }
+        .file-drop-area.dragover {
+            border-color: #0056b3;
+            background: #f0f8ff;
+        }
+        .file-list {
+            margin-top: 10px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .remove-file {
+            color: red;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .submission-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .submission-status.submitted {
+            background: #d4edda;
+            color: #155724;
+        }
+        .submission-status.graded {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .submission-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .grade-form {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .grade-input {
+            width: 80px;
+            padding: 5px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -273,6 +633,8 @@
             <button id="show-chat">Chat Público</button>
             <button id="show-tasks">Tareas</button>
             <button id="show-projects">Proyectos</button>
+            <button id="show-reports">Reportes</button>
+            <button id="show-reminders">Recordatorios</button>
             <button id="logout">Cerrar Sesión</button>
         </div>
 
@@ -424,6 +786,52 @@
                     </form>
                 </div>
                 <button id="new-project-btn" style="display: none;">Nuevo Proyecto</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reports-view" class="view" style="display: none;">
+        <div class="container">
+            <div class="reports-section">
+                <h2>Reportes</h2>
+            <button id="load-student-progress">Progreso de Alumnos</button>
+            <button id="load-tutor-performance">Rendimiento de Tutores</button>
+            <button id="load-project-stats">Estadísticas de Proyectos</button>
+            <button id="load-dashboard-metrics">Métricas del Dashboard</button>
+            <button id="load-activity-history">Historial de Actividades</button>
+            <button id="load-welcome">Welcome</button>
+                <div id="reports-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reminders-view" class="view" style="display: none;">
+        <div class="container">
+            <div class="reminders-section">
+                <h2>Recordatorios</h2>
+                <div id="create-reminder" style="display: none;">
+                    <h3 id="reminder-form-title">Crear Recordatorio</h3>
+                    <form id="reminder-form" style="display: flex; flex-wrap: wrap; gap: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="reminder-title">Título:</label>
+                            <input type="text" id="reminder-title" placeholder="Título del recordatorio" required>
+                        </div>
+                        <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="reminder-description">Descripción:</label>
+                            <textarea id="reminder-description" placeholder="Descripción"></textarea>
+                        </div>
+                        <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                            <label for="reminder-date">Fecha y hora:</label>
+                            <input type="datetime-local" id="reminder-date" required>
+                        </div>
+                        <div style="flex-basis: 100%; display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="submit">Guardar</button>
+                            <button type="button" id="cancel-reminder">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+                <button id="new-reminder-btn">Nuevo Recordatorio</button>
+                <div id="reminders" class="reminder-list"></div>
             </div>
         </div>
     </div>
@@ -767,10 +1175,12 @@
         let currentRole = null;
         let editingTaskId = null;
         let editingProjectId = null;
+        let editingReminderId = null;
         let isSavingProject = false;
         let isRecentlySaved = false;
         let notifications = [];
         let unreadNotifications = 0;
+        let reminders = [];
 
         function decodeJWT(token) {
             try {
@@ -986,8 +1396,9 @@
                     <p>Alumno asignado: ${task.responsible?.username || 'N/A'}</p>
                     <p>Estado: ${task.status}</p>
                     <p>Prioridad: ${task.priority}</p>
-                    ${task.dueDate ? `<p>Fecha límite: ${new Date(task.dueDate).toLocaleDateString()} - Cuenta regresiva: ${calculateCountdown(task.dueDate)}</p>` : ''}
-                    ${currentRole === 'Tutor' ? `<button onclick="editTask(${task.id})">Editar</button> <button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
+            ${task.dueDate ? `<p>Fecha límite: ${new Date(task.dueDate).toLocaleDateString()} - Cuenta regresiva: ${calculateCountdown(task.dueDate)}</p>` : ''}
+            ${currentRole === 'Tutor' ? `<button onclick="editTask(${task.id})">Editar</button> <button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
+            ${currentRole === 'Alumno' && task.responsibleId === currentUser.id ? `<button class="task-submit-btn" onclick="openSubmissionModal('task', ${task.id})">Realizar Entrega</button>` : ''}
                 `;
                 tasksDiv.appendChild(taskDiv);
             });
@@ -1350,6 +1761,166 @@
             document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
             document.getElementById('projects-view').style.display = 'block';
         });
+
+        document.getElementById('show-reports').addEventListener('click', () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('reports-view').style.display = 'block';
+        });
+
+        document.getElementById('show-reminders').addEventListener('click', () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('reminders-view').style.display = 'block';
+            loadReminders();
+        });
+
+        async function loadReminders() {
+            try {
+                const response = await axios.get('http://localhost:8000/reminders', { headers: getAuthHeaders() });
+                reminders = response.data;
+                renderReminders();
+            } catch (error) {
+                console.error('Error loading reminders:', error);
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado. Por favor, inicia sesión de nuevo.');
+                    logout();
+                } else {
+                    alert('Error cargando recordatorios: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        }
+
+        function renderReminders() {
+            const remindersDiv = document.getElementById('reminders');
+            remindersDiv.innerHTML = '';
+            if (!reminders || !Array.isArray(reminders) || reminders.length === 0) {
+                remindersDiv.innerHTML = '<p>No tienes recordatorios aún.</p>';
+                return;
+            }
+            reminders.forEach(reminder => {
+                const reminderDiv = document.createElement('div');
+                reminderDiv.className = 'reminder-item';
+                const scheduledDate = new Date(reminder.scheduledAt);
+                const now = new Date();
+                const isPast = scheduledDate < now;
+                const timeLeft = isPast ? 'Expirado' : calculateCountdown(reminder.scheduledAt);
+
+                reminderDiv.innerHTML = `
+                    <h4>${reminder.title}</h4>
+                    <p>${reminder.description || ''}</p>
+                    <p>Fecha programada: ${scheduledDate.toLocaleString()}</p>
+                    <p>Tiempo restante: ${timeLeft}</p>
+                    <p>Estado: ${reminder.isActive ? 'Activo' : 'Inactivo'}</p>
+                    ${reminder.relatedId ? `<p>Relacionado con: ${reminder.relatedType === 'task' ? 'Tarea' : 'Proyecto'} ID ${reminder.relatedId}</p>` : ''}
+                    <button onclick="editReminder(${reminder.id})">Editar</button>
+                    <button onclick="deleteReminder(${reminder.id})">Eliminar</button>
+                    <button onclick="toggleReminderStatus(${reminder.id}, ${reminder.isActive})">${reminder.isActive ? 'Desactivar' : 'Activar'}</button>
+                `;
+                remindersDiv.appendChild(reminderDiv);
+            });
+        }
+
+        async function saveReminder() {
+            const title = document.getElementById('reminder-title').value.trim();
+            const description = document.getElementById('reminder-description').value;
+            const scheduledAt = document.getElementById('reminder-date').value;
+
+            if (!title || !scheduledAt) {
+                alert('Ingresa título y fecha');
+                return;
+            }
+
+            const scheduledDate = new Date(scheduledAt);
+            if (scheduledDate <= new Date()) {
+                alert('La fecha debe ser futura');
+                return;
+            }
+
+            const reminderData = {
+                title,
+                description: description || null,
+                scheduledAt
+            };
+
+            try {
+                if (editingReminderId) {
+                    await axios.put(`http://localhost:8000/reminders/${editingReminderId}`, reminderData, { headers: getAuthHeaders() });
+                    alert('Recordatorio actualizado exitosamente');
+                } else {
+                    await axios.post('http://localhost:8000/reminders', reminderData, { headers: getAuthHeaders() });
+                    alert('Recordatorio creado exitosamente');
+                }
+
+                document.getElementById('create-reminder').style.display = 'none';
+                editingReminderId = null;
+                document.getElementById('reminder-form-title').textContent = 'Crear Recordatorio';
+                await loadReminders();
+            } catch (error) {
+                alert('Error guardando recordatorio: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        async function toggleReminderStatus(id, currentStatus) {
+            try {
+                const newStatus = !currentStatus;
+                await axios.put(`http://localhost:8000/reminders/${id}`, { isActive: newStatus }, { headers: getAuthHeaders() });
+                alert(`Recordatorio ${newStatus ? 'activado' : 'desactivado'} exitosamente`);
+                await loadReminders();
+            } catch (error) {
+                alert('Error cambiando estado del recordatorio: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        // Reminder form submission
+        document.getElementById('reminder-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveReminder();
+        });
+
+        document.getElementById('cancel-reminder').addEventListener('click', () => {
+            document.getElementById('create-reminder').style.display = 'none';
+            editingReminderId = null;
+            document.getElementById('reminder-form-title').textContent = 'Crear Recordatorio';
+        });
+
+        document.getElementById('new-reminder-btn').addEventListener('click', () => {
+            editingReminderId = null;
+            document.getElementById('reminder-form-title').textContent = 'Crear Recordatorio';
+            document.getElementById('reminder-title').value = '';
+            document.getElementById('reminder-description').value = '';
+            document.getElementById('reminder-date').value = '';
+            document.getElementById('create-reminder').style.display = 'block';
+        });
+
+        // Global functions for editing/deleting reminders
+        window.editReminder = async (id) => {
+            try {
+                const response = await axios.get(`http://localhost:8000/reminders/${id}`, { headers: getAuthHeaders() });
+                const reminder = response.data;
+
+                editingReminderId = id;
+                document.getElementById('reminder-form-title').textContent = 'Editar Recordatorio';
+                document.getElementById('reminder-title').value = reminder.title;
+                document.getElementById('reminder-description').value = reminder.description || '';
+                document.getElementById('reminder-date').value = new Date(reminder.scheduledAt).toISOString().slice(0,16);
+                document.getElementById('create-reminder').style.display = 'block';
+            } catch (error) {
+                alert('Error cargando recordatorio: ' + (error.response?.data?.message || error.message));
+            }
+        };
+
+        window.deleteReminder = async (id) => {
+            if (confirm('¿Eliminar recordatorio?')) {
+                try {
+                    await axios.delete(`http://localhost:8000/reminders/${id}`, { headers: getAuthHeaders() });
+                    alert('Recordatorio eliminado exitosamente');
+                    await loadReminders();
+                } catch (error) {
+                    alert('Error eliminando recordatorio: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        };
+
+        window.toggleReminderStatus = toggleReminderStatus;
 
         document.getElementById('logout').addEventListener('click', () => {
             // Limpiar datos de usuario
