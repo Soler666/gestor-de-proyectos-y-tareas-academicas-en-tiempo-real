@@ -7,7 +7,7 @@
 [![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
 [![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
-Un backend completo y robusto para la gestión de proyectos educativos, desarrollado con tecnologías modernas. Incluye autenticación de usuarios con roles diferenciados (Tutor/Alumno), gestión de proyectos y tareas, chat en tiempo real (público y privado), y un sistema completo de notificaciones.
+Un backend completo y robusto para la gestión de proyectos educativos, desarrollado con tecnologías modernas. Incluye autenticación de usuarios con roles diferenciados (Tutor/Alumno), gestión de proyectos y tareas con sistema de entregas y calificaciones, chat en tiempo real (público y privado), sistema completo de notificaciones y recordatorios automáticos.
 
 ## ✨ Características Principales
 
@@ -212,11 +212,33 @@ src/
 │   ├── projectController.ts
 │   ├── taskController.ts
 │   ├── chatController.ts
-│   └── notificationController.ts
+│   ├── notificationController.ts
+│   ├── reminderController.ts
+│   ├── submissionController.ts
+│   └── reportController.ts
 ├── routes/               # Definición de rutas
+│   ├── authRoutes.ts
+│   ├── userRoutes.ts
+│   ├── projectRoutes.ts
+│   ├── taskRoutes.ts
+│   ├── chatRoutes.ts
+│   ├── notificationRoutes.ts
+│   ├── reminderRoutes.ts
+│   ├── submissionRoutes.ts
+│   └── reportRoutes.ts
+├── service/              # Lógica de negocio
+│   ├── authService.ts
+│   ├── userService.ts
+│   ├── projectService.ts
+│   ├── taskService.ts
+│   ├── chatService.ts
+│   ├── notificationScheduler.ts
+│   ├── reminderService.ts
+│   ├── submissionService.ts
+│   ├── activityLogService.ts
+│   └── reportService.ts
 ├── middleware/           # Middlewares personalizados
 ├── model/                # Modelos y esquemas Zod
-├── service/              # Lógica de negocio
 └── util/                 # Utilidades
 ```
 
@@ -233,6 +255,7 @@ src/
 Se incluye un cliente HTML básico para pruebas funcionales que incluye:
 - Formularios de autenticación
 - Gestión de tareas y proyectos
+- **Sistema de entregas**: Los estudiantes pueden enviar tareas con archivos adjuntos
 - Chat en tiempo real
 - Interfaz responsive
 
