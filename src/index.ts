@@ -168,6 +168,29 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Eventos para exámenes
+  socket.on('exam:start', (data) => {
+    const { examId } = data;
+    socket.join(`exam_${examId}`);
+    io.to(`exam_${examId}`).emit('exam:started', { examId, userId: userData.id });
+  });
+
+  socket.on('exam:time_update', (data) => {
+    const { examId, timeRemaining } = data;
+    socket.to(`exam_${examId}`).emit('exam:time_sync', { examId, timeRemaining, userId: userData.id });
+  });
+
+  socket.on('exam:time_up', (data) => {
+    const { examId } = data;
+    io.to(`exam_${examId}`).emit('exam:time_expired', { examId, userId: userData.id });
+  });
+
+  socket.on('exam:submit', async (data) => {
+    const { examId, answers } = data;
+    // Detener temporizador para este usuario
+    io.to(`exam_${examId}`).emit('exam:submitted', { examId, userId: userData.id });
+  });
+
   socket.on('disconnect', () => {
     console.log(`Usuario desconectado: ${userData.username}`);
   });

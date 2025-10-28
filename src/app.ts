@@ -11,6 +11,7 @@ import notificationRoutes from './routes/notificationRoutes'
 import reportRoutes from './routes/reportRoutes'
 import reminderRoutes from './routes/reminderRoutes'
 import submissionRoutes from './routes/submissionRoutes'
+import examRoutes from './routes/examRoutes'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -40,6 +41,7 @@ app.use('/notifications', notificationRoutes)
 app.use('/reports', reportRoutes)
 app.use('/reminders', reminderRoutes)
 app.use('/submissions', submissionRoutes)
+app.use('/exams', examRoutes)
 
 //TODO: añadir validaciones con zod (listo)
 

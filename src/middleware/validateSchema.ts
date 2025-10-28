@@ -18,6 +18,6 @@ export const verifySchema =
         })
       }
 
-      throw new Error('Error verificando schema: ', error.message)
+      throw new Error('Error verificando schema: ' + error.message)
     }
   }

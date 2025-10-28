@@ -149,6 +149,173 @@ npx prisma migrate dev --name add_submission_and_file_models
 
 Esta implementación completa el sistema de entregas, permitiendo tanto la subida de tareas como su calificación con integración total al ecosistema existente.
 
+## 📝 Sistema de Exámenes
+
+### Descripción General
+El sistema de exámenes permite a los tutores crear exámenes con preguntas generadas automáticamente por IA, asignarlos a estudiantes específicos, y gestionar el proceso de calificación automática con revisión detallada. Incluye integración completa con el sistema de notificaciones para mantener informados a todos los usuarios.
+
+### Modelo de Datos (Prisma Schema)
+
+```prisma
+model Exam {
+  id              Int      @id @default(autoincrement())
+  title           String
+  topics          String   // JSON stringified array
+  numQuestions    Int
+  timeLimit       Int      // in minutes
+  generatedQuestions String? // JSON stringified questions
+  createdBy       Int
+  createdByUser   User     @relation("CreatedExams", fields: [createdBy], references: [id])
+  assignedTo       String   // JSON stringified array of user IDs
+  status          String   @default("active") // "active", "inactive"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  questions       ExamQuestion[]
+  submissions     ExamSubmission[]
+}
+
+model ExamQuestion {
+  id          Int      @id @default(autoincrement())
+  examId      Int
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question    String
+  options     String?  // JSON stringified array for multiple choice
+  correctAnswer String
+  type        String   // "multiple_choice", "true_false", "short_answer"
+}
+
+model ExamSubmission {
+  id          Int      @id @default(autoincrement())
+  examId      Int
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId   Int
+  student     User     @relation("ExamSubmissions", fields: [studentId], references: [id])
+  answers     String   // JSON stringified answers object
+  score       Float    // 0-5 scale
+  review      String   // JSON stringified review object
+  submittedAt DateTime @default(now())
+}
+```
+
+### Servicio de Exámenes (examService.ts)
+
+#### Funcionalidades Implementadas:
+- **Generación de Preguntas con IA**: Integración con Gemini AI para crear preguntas automáticamente basadas en temas específicos.
+- **Gestión de Asignaciones**: Sistema flexible para asignar exámenes a estudiantes individuales.
+- **Calificación Automática**: Sistema de puntuación automática con escala 1-5 y revisión detallada.
+- **Control de Acceso**: Validación estricta de permisos basada en roles y asignaciones.
+- **Manejo de Errores Robusto**: Try-catch blocks para parsing JSON seguro.
+- **Integración con Notificaciones**: Notificaciones automáticas para creación y envío de exámenes.
+
+#### Métodos Principales:
+- `createExam()`: Crea un examen con preguntas generadas por IA y notifica a estudiantes asignados.
+- `getExamsForStudent()`: Obtiene exámenes asignados a un estudiante específico.
+- `getExamsForTutor()`: Obtiene todos los exámenes creados por un tutor con información de asignaciones.
+- `submitExam()`: Procesa el envío de un examen, calcula calificación y notifica al tutor.
+- `getExamQuestions()`: Obtiene preguntas de un examen para un estudiante autorizado.
+- `getExamResults()`: Proporciona estadísticas y resultados detallados para tutores.
+- `deleteExam()`: Elimina un examen y todas sus dependencias.
+
+#### Tipos de Pregunta Soportados:
+- **Opción Múltiple**: Preguntas con 4 opciones, una correcta.
+- **Verdadero/Falso**: Preguntas de dos opciones.
+- **Respuesta Corta**: Preguntas abiertas con validación de texto.
+
+#### Mensajes de Notificación (en español):
+- Para estudiantes (nuevo examen): `"Nuevo examen asignado: "${exam.title}". Tienes ${exam.timeLimit} minutos para completarlo."`
+- Para tutores (examen completado): `"El estudiante ${student.username} ha completado el examen "${exam.title}". Calificación: ${score.toFixed(1)}/5.0"`
+
+### Controlador de Exámenes (examController.ts)
+
+#### Endpoints CRUD:
+- `POST /exams`: Crear examen (tutores)
+- `GET /exams/student`: Obtener exámenes asignados (estudiantes)
+- `GET /exams/tutor`: Obtener exámenes creados (tutores)
+- `GET /exams/:id/questions`: Obtener preguntas de un examen (estudiantes)
+- `POST /exams/submit`: Enviar respuestas de examen (estudiantes)
+- `GET /exams/:id/results`: Obtener resultados y estadísticas (tutores)
+- `DELETE /exams/:id`: Eliminar examen (tutores)
+
+#### Validaciones Implementadas:
+- Autenticación requerida para todas las rutas
+- Verificación de roles: tutores para crear/gestionar, estudiantes para acceder/asignar
+- Validación de asignaciones: estudiantes solo acceden a exámenes asignados
+- Control de envíos: estudiantes no pueden enviar exámenes ya completados
+- Validación de datos: temas, número de preguntas, tiempo límite
+
+#### Respuestas de Error (en español):
+- `"No autenticado."`
+- `"Solo los tutores pueden crear exámenes."`
+- `"Título, temas y número de preguntas son requeridos."`
+- `"Número de preguntas debe estar entre 1 y 20."`
+- `"Tiempo límite debe estar entre 5 y 180 minutos."`
+- `"Debe asignar al menos un estudiante."`
+- `"Examen no encontrado."`
+- `"No asignado a este examen."`
+- `"Ya has enviado este examen."`
+- `"No autorizado para ver estos resultados."`
+
+### Rutas de Exámenes (examRoutes.ts)
+
+Todas las rutas requieren autenticación JWT (`verifyToken` middleware).
+
+```typescript
+router.post('/', createExam);
+router.get('/student', getExamsForStudent);
+router.get('/tutor', getExamsForTutor);
+router.get('/:id/questions', getExamQuestions);
+router.post('/submit', submitExam);
+router.get('/:id/results', getExamResults);
+router.delete('/:id', deleteExam);
+```
+
+### Integración con la Aplicación Principal (app.ts)
+
+Las rutas de exámenes están registradas en `/exams`:
+```typescript
+app.use('/exams', examRoutes);
+```
+
+### Servicio de IA (aiService.ts)
+
+#### Funcionalidades de Generación de Preguntas:
+- **Integración con Gemini AI**: Uso de la API de Google Gemini para generar preguntas contextuales.
+- **Prompts Inteligentes**: Creación de prompts específicos por tipo de pregunta y tema.
+- **Validación de Respuestas**: Aseguramiento de formato JSON válido en respuestas de IA.
+- **Manejo de Errores**: Fallback para casos donde la IA no responde correctamente.
+
+#### Tipos de Pregunta Generados:
+- **Múltiple Choice**: 4 opciones con una correcta, explicación opcional.
+- **True/False**: Preguntas de verdadero/falso con justificación.
+- **Short Answer**: Preguntas abiertas con respuesta esperada.
+
+### Migración de Base de Datos
+
+Se ejecutó la migración de Prisma para asegurar que los modelos Exam, ExamQuestion y ExamSubmission estén presentes en la base de datos:
+```bash
+npx prisma migrate dev --name add_exam_models
+```
+
+### Funcionamiento Automático
+
+- **Generación de Preguntas**: Las preguntas se generan automáticamente al crear un examen usando IA.
+- **Notificaciones**: Se envían automáticamente al asignar exámenes y completar envíos.
+- **Calificación**: Sistema automático con escala 1-5 y revisión detallada por pregunta.
+- **Asignaciones**: Sistema flexible de asignación individual por estudiante.
+- **Seguridad**: Control estricto de acceso basado en roles y asignaciones específicas.
+
+### Consideraciones Técnicas
+
+- **IA Integration**: Uso de Google Gemini API para generación inteligente de contenido.
+- **JSON Handling**: Parsing seguro con try-catch para evitar errores de datos corruptos.
+- **Real-time Notifications**: Integración completa con el sistema de notificaciones existente.
+- **Scalability**: Diseño modular que permite expansión futura (exámenes grupales, timers, etc.).
+- **Data Integrity**: Relaciones de base de datos con cascada para mantener consistencia.
+- **Language**: Mensajes en español para consistencia con la plataforma universitaria.
+
+Esta implementación completa el sistema de exámenes, proporcionando una solución integral para evaluación educativa con IA, calificación automática y notificaciones en tiempo real.
+
 ## 🔔 Sistema de Recordatorios
 
 ### Descripción General

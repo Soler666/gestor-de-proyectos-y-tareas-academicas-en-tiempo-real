@@ -27,6 +27,8 @@ model User {
   studentSubmissions Submission[] @relation("StudentSubmissions")
   tutorGradings  Submission[] @relation("TutorGradings")
   activityLogs   ActivityLog[] @relation("UserActivityLogs")
+  createdExams   Exam[] @relation("ExamCreator")
+  examSubmissions ExamSubmission[] @relation("ExamStudent")
 }
 
 model Project {
@@ -135,4 +137,42 @@ model ActivityLog {
   oldValues   String?  // Valores anteriores en formato JSON
   newValues   String?  // Valores nuevos en formato JSON
   timestamp   DateTime @default(now())
+}
+
+model Exam {
+  id             Int             @id @default(autoincrement())
+  title          String
+  topics         String          // Temas especificados por el tutor (JSON array)
+  numQuestions   Int
+  timeLimit      Int             // En minutos
+  generatedQuestions Json        // Preguntas generadas por IA (JSON)
+  createdBy      Int             // ID del tutor
+  createdByUser  User            @relation("ExamCreator", fields: [createdBy], references: [id])
+  assignedTo     String          // IDs de estudiantes asignados (JSON string)
+  status         String          @default("active") // active, completed
+  createdAt      DateTime        @default(now())
+  submissions    ExamSubmission[]
+  questions      ExamQuestion[]
+}
+
+model ExamQuestion {
+  id          Int      @id @default(autoincrement())
+  examId      Int
+  exam        Exam     @relation(fields: [examId], references: [id])
+  question    String
+  options     Json?    // Opciones para múltiple choice (JSON array)
+  correctAnswer String // Respuesta correcta
+  type        String   // multiple_choice, true_false, open_ended
+}
+
+model ExamSubmission {
+  id          Int      @id @default(autoincrement())
+  examId      Int
+  exam        Exam     @relation(fields: [examId], references: [id])
+  studentId   Int
+  student     User     @relation("ExamStudent", fields: [studentId], references: [id])
+  answers     Json     // Respuestas del estudiante (JSON)
+  score       Float    // Nota de 1.0 a 5.0
+  submittedAt DateTime @default(now())
+  review      Json?    // Revisión: correctas/incorrectas (JSON)
 }

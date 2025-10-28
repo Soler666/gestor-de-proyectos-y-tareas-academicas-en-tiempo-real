@@ -147,6 +147,143 @@
         .nav button {
             margin: 0 10px;
         }
+        .exam-section, .exams-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .exam-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .exam-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .exam-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .exam-timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .exam-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .exam-options {
+            margin-top: 10px;
+        }
+        .exam-option {
+            display: block;
+            margin: 5px 0;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .exam-results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .exam-taking {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .exam-question-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .exam-question-number {
+            font-weight: bold;
+        }
+        .exam-submit-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .exam-submit-btn:hover {
+            background: #218838;
+        }
+        .exam-submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .exam-section, .exams-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .exam-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .exam-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .exam-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .exam-timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .exam-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .exam-options {
+            margin-top: 10px;
+        }
+        .exam-option {
+            display: block;
+            margin: 5px 0;
+        }
+        .exam-results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
         .submission-modal {
             display: none;
             position: fixed;
@@ -635,6 +772,7 @@
             <button id="show-projects">Proyectos</button>
             <button id="show-reports">Reportes</button>
             <button id="show-reminders">Recordatorios</button>
+            <button id="show-exams">Exámenes</button>
             <button id="logout">Cerrar Sesión</button>
         </div>
 
@@ -830,11 +968,77 @@
                         </div>
                     </form>
                 </div>
-                <button id="new-reminder-btn">Nuevo Recordatorio</button>
-                <div id="reminders" class="reminder-list"></div>
+            <button id="new-reminder-btn">Nuevo Recordatorio</button>
+            <div id="reminders" class="reminder-list"></div>
+        </div>
+    </div>
+</div>
+
+    <div id="exams-view" class="view" style="display: none;">
+    <div class="container">
+        <div class="exams-section">
+            <h2>Exámenes</h2>
+            <div id="exams" class="exam-list"></div>
+            <div id="create-exam" style="display: none;">
+                <h3 id="exam-form-title">Crear Examen</h3>
+                <form id="exam-form" style="display: flex; flex-wrap: wrap; gap: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                    <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                        <label for="exam-title">Título del examen:</label>
+                        <input type="text" id="exam-title" placeholder="Título del examen" required>
+                    </div>
+                    <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                        <label for="exam-topics">Temas (separados por coma):</label>
+                        <input type="text" id="exam-topics" placeholder="Matemáticas, Física, Química" required>
+                    </div>
+                    <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                        <label for="exam-num-questions">Número de preguntas:</label>
+                        <input type="number" id="exam-num-questions" placeholder="10" min="1" max="50" required>
+                    </div>
+                    <div style="flex: 1 1 200px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                        <label for="exam-time-limit">Tiempo límite (minutos):</label>
+                        <input type="number" id="exam-time-limit" placeholder="60" min="5" max="300" required>
+                    </div>
+                    <div style="flex: 1 1 300px; display: flex; flex-direction: column; margin-bottom: 15px;">
+                        <label for="exam-assigned-to">Asignar a estudiantes:</label>
+                        <select id="exam-assigned-to" multiple style="min-height: 100px;" required>
+                            <!-- Opciones cargadas dinámicamente -->
+                        </select>
+                        <small style="color: #666; margin-top: 5px;">Mantén Ctrl (Cmd en Mac) para seleccionar múltiples estudiantes</small>
+                    </div>
+                    <div style="flex-basis: 100%; display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" id="save-exam">Guardar</button>
+                        <button type="button" id="cancel-exam">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+            <button id="new-exam-btn" style="display: none;">Nuevo Examen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para tomar examen -->
+<div id="exam-modal" class="exam-taking" style="display: none;">
+    <div class="container">
+        <div class="exam-section">
+            <h2 id="exam-modal-title">Tomando Examen</h2>
+            <div id="exam-timer" class="exam-timer">Tiempo restante: --:--</div>
+            <div id="exam-questions" class="exam-questions"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="submit-exam-btn" class="exam-submit-btn">Enviar Examen</button>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal para resultados del tutor -->
+<div id="exam-results-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;">
+        <button onclick="closeExamResultsModal()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+        <h2 id="exam-results-title">Resultados del Examen</h2>
+        <div id="exam-results-content"></div>
+        <button onclick="closeExamResultsModal()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Cerrar</button>
+    </div>
+</div>
 
     <script>
         const socket = io('http://localhost:8000', {
@@ -1480,6 +1684,7 @@
                 // Mostrar/ocultar botones según rol
                 document.getElementById('new-task-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
                 document.getElementById('new-project-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
+                document.getElementById('new-exam-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
 
                 // Asegurarse que las vistas de listas son visibles y los formularios de creación ocultos
                 document.getElementById('tasks').style.display = 'block';
@@ -1773,6 +1978,350 @@
             loadReminders();
         });
 
+        document.getElementById('show-exams').addEventListener('click', () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('exams-view').style.display = 'block';
+            loadExams();
+        });
+
+        // Exam functionality
+        async function loadExams() {
+            try {
+                let response;
+                if (currentRole === 'Tutor') {
+                    response = await axios.get('http://localhost:8000/exams/tutor', { headers: getAuthHeaders() });
+                } else {
+                    response = await axios.get('http://localhost:8000/exams/student', { headers: getAuthHeaders() });
+                }
+                const exams = response.data;
+                renderExams(exams);
+            } catch (error) {
+                console.error('Error loading exams:', error);
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado. Por favor, inicia sesión de nuevo.');
+                    logout();
+                } else {
+                    alert('Error cargando exámenes: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        }
+
+        function renderExams(exams) {
+            const examsDiv = document.getElementById('exams');
+            examsDiv.innerHTML = '';
+            if (!exams || exams.length === 0) {
+                examsDiv.innerHTML = currentRole === 'Tutor' ? '<p>No has creado exámenes aún.</p>' : '<p>No tienes exámenes asignados aún.</p>';
+                return;
+            }
+
+            exams.forEach(exam => {
+                const examDiv = document.createElement('div');
+                examDiv.className = 'exam-item';
+                const assignedUsers = exam.assignedUsers && exam.assignedUsers.length > 0 ? exam.assignedUsers.map(u => u.username).join(', ') : 'Ninguno';
+                const topics = exam.topics ? JSON.parse(exam.topics).join(', ') : '';
+
+                if (currentRole === 'Tutor') {
+                    examDiv.innerHTML = `
+                        <h4>${exam.title}</h4>
+                        <p>Temas: ${topics}</p>
+                        <p>Preguntas: ${exam.numQuestions}</p>
+                        <p>Tiempo límite: ${exam.timeLimit} minutos</p>
+                        <p>Asignados: ${assignedUsers}</p>
+                        <button onclick="viewExamResults(${exam.id})">Ver Resultados</button>
+                        <button onclick="deleteExam(${exam.id})">Eliminar</button>
+                    `;
+                } else {
+                    const isCompleted = exam.submissions && exam.submissions.some(s => s.studentId === currentUser.id);
+                    examDiv.innerHTML = `
+                        <h4>${exam.title}</h4>
+                        <p>Temas: ${topics}</p>
+                        <p>Preguntas: ${exam.numQuestions}</p>
+                        <p>Tiempo límite: ${exam.timeLimit} minutos</p>
+                        <p>Estado: ${isCompleted ? 'Completado' : 'Pendiente'}</p>
+                        ${!isCompleted ? `<button onclick="takeExam(${exam.id})">Tomar Examen</button>` : '<p>Examen completado</p>'}
+                    `;
+                }
+                examsDiv.appendChild(examDiv);
+            });
+        }
+
+        // Load users for exam assignment
+        async function loadUsersForExamForm() {
+            const select = document.getElementById('exam-assigned-to');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const users = await loadUsers();
+                const students = users.filter(user => user.role && user.role.toLowerCase() === 'alumno');
+                select.innerHTML = '';
+                if (students.length === 0) {
+                    select.innerHTML = '<option value="">No hay alumnos</option>';
+                } else {
+                    students.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.username;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                select.innerHTML = '<option value="">Error cargando alumnos</option>';
+                console.error('Error loading users for exam form:', error);
+            }
+        }
+
+        // New exam button event
+        document.getElementById('new-exam-btn').addEventListener('click', async () => {
+            document.getElementById('create-exam').style.display = 'block';
+            await loadUsersForExamForm();
+        });
+
+        // Save exam event
+        document.getElementById('save-exam').addEventListener('click', async () => {
+            const title = document.getElementById('exam-title').value.trim();
+            const topics = document.getElementById('exam-topics').value.trim();
+            const numQuestions = parseInt(document.getElementById('exam-num-questions').value);
+            const timeLimit = parseInt(document.getElementById('exam-time-limit').value);
+            const assignedToSelect = document.getElementById('exam-assigned-to');
+            const assignedTo = Array.from(assignedToSelect.selectedOptions).map(option => parseInt(option.value));
+
+            if (!title || !topics || !numQuestions || !timeLimit || assignedTo.length === 0) {
+                alert('Completa todos los campos requeridos');
+                return;
+            }
+
+            try {
+                const examData = {
+                    title,
+                    topics,
+                    numQuestions,
+                    timeLimit,
+                    assignedTo
+                };
+
+                await axios.post('http://localhost:8000/exams', examData, { headers: getAuthHeaders() });
+                alert('Examen creado exitosamente');
+
+                document.getElementById('create-exam').style.display = 'none';
+                document.getElementById('exam-title').value = '';
+                document.getElementById('exam-topics').value = '';
+                document.getElementById('exam-num-questions').value = '';
+                document.getElementById('exam-time-limit').value = '';
+                document.getElementById('exam-assigned-to').selectedIndex = -1;
+
+                await loadExams();
+            } catch (error) {
+                console.error('Error creando examen:', error);
+                alert('Error creando examen: ' + (error.response?.data?.message || error.message));
+            }
+        });
+
+        // Cancel exam event
+        document.getElementById('cancel-exam').addEventListener('click', () => {
+            document.getElementById('create-exam').style.display = 'none';
+        });
+
+        // Take exam function
+        async function takeExam(examId) {
+            try {
+                const response = await axios.get(`http://localhost:8000/exams/${examId}/questions`, { headers: getAuthHeaders() });
+                const examData = response.data;
+                currentExam = examData;
+                currentExamId = examId;
+                renderExamQuestions(examData.questions);
+                startExamTimer(examData.timeLimit);
+                document.getElementById('exam-modal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading exam questions:', error);
+                alert('Error cargando preguntas del examen: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        let currentExam = null;
+        let currentExamId = null;
+        let examTimer = null;
+        let examTimeLeft = 0;
+
+        function renderExamQuestions(questions) {
+            const questionsDiv = document.getElementById('exam-questions');
+            questionsDiv.innerHTML = '';
+
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'exam-question';
+                let optionsHtml = '';
+
+                if (question.type === 'multiple_choice' && question.options) {
+                    optionsHtml = question.options.map((option, optIndex) => `
+                        <label class="exam-option">
+                            <input type="radio" name="question-${index}" value="${optIndex}" required>
+                            ${option}
+                        </label>
+                    `).join('');
+                } else if (question.type === 'true_false') {
+                    optionsHtml = `
+                        <label class="exam-option">
+                            <input type="radio" name="question-${index}" value="true" required>
+                            Verdadero
+                        </label>
+                        <label class="exam-option">
+                            <input type="radio" name="question-${index}" value="false" required>
+                            Falso
+                        </label>
+                    `;
+                } else if (question.type === 'open_ended') {
+                    optionsHtml = `
+                        <textarea name="question-${index}" rows="4" cols="50" placeholder="Escribe tu respuesta aquí..." required></textarea>
+                    `;
+                }
+
+                questionDiv.innerHTML = `
+                    <h4>Pregunta ${index + 1}</h4>
+                    <p>${question.question}</p>
+                    <div class="exam-options">
+                        ${optionsHtml}
+                    </div>
+                `;
+                questionsDiv.appendChild(questionDiv);
+            });
+        }
+
+        function startExamTimer(timeLimit) {
+            examTimeLeft = timeLimit * 60; // Convert to seconds
+            updateExamTimer();
+
+            examTimer = setInterval(() => {
+                examTimeLeft--;
+                updateExamTimer();
+
+                if (examTimeLeft <= 0) {
+                    clearInterval(examTimer);
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function updateExamTimer() {
+            const minutes = Math.floor(examTimeLeft / 60);
+            const seconds = examTimeLeft % 60;
+            document.getElementById('exam-timer').textContent = `Tiempo restante: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Submit exam event
+        document.getElementById('submit-exam-btn').addEventListener('click', submitExam);
+
+        async function submitExam() {
+            if (examTimer) {
+                clearInterval(examTimer);
+            }
+
+            // Validar que todas las preguntas estén respondidas
+            let allAnswered = true;
+            const answers = {};
+
+            currentExam.questions.forEach((question, index) => {
+                let answer = null;
+
+                if (question.type === 'open_ended') {
+                    // Para preguntas abiertas, buscar textarea
+                    const textarea = document.querySelector(`textarea[name="question-${index}"]`);
+                    if (textarea && textarea.value.trim()) {
+                        answer = textarea.value.trim();
+                    }
+                } else {
+                    // Para preguntas de opción múltiple y verdadero/falso, buscar radio button seleccionado
+                    const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+                    if (selectedOption) {
+                        if (question.type === 'multiple_choice') {
+                            // Para múltiple choice, enviar el texto completo de la opción seleccionada
+                            const selectedIndex = parseInt(selectedOption.value);
+                            answer = question.options[selectedIndex];
+                        } else {
+                            // Para verdadero/falso, enviar el valor directamente
+                            answer = selectedOption.value;
+                        }
+                    }
+                }
+
+                if (answer) {
+                    answers[question.id.toString()] = answer;
+                } else {
+                    allAnswered = false;
+                }
+            });
+
+            if (!allAnswered) {
+                alert('Por favor responde todas las preguntas antes de enviar el examen.');
+                return;
+            }
+
+            try {
+                await axios.post('http://localhost:8000/exams/submit', { examId: currentExamId, answers }, { headers: getAuthHeaders() });
+                alert('Examen enviado exitosamente');
+                document.getElementById('exam-modal').style.display = 'none';
+                await loadExams();
+            } catch (error) {
+                console.error('Error submitting exam:', error);
+                alert('Error enviando examen: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        // View exam results for tutor
+        async function viewExamResults(examId) {
+            try {
+                const response = await axios.get(`http://localhost:8000/exams/${examId}/results`, { headers: getAuthHeaders() });
+                const results = response.data;
+                renderExamResults(results);
+                document.getElementById('exam-results-modal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading exam results:', error);
+                alert('Error cargando resultados: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        function renderExamResults(results) {
+            const resultsDiv = document.getElementById('exam-results-content');
+            resultsDiv.innerHTML = '';
+
+            if (!results || !results.submissions || results.submissions.length === 0) {
+                resultsDiv.innerHTML = '<p>No hay resultados disponibles aún.</p>';
+                return;
+            }
+
+            results.submissions.forEach(submission => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'exam-results';
+                resultDiv.innerHTML = `
+                    <h4>Estudiante: ${submission.student.username}</h4>
+                    <p>Puntuación: ${submission.score.toFixed(1)}/5.0</p>
+                    <p>Porcentaje: ${((submission.score / 5.0) * 100).toFixed(2)}%</p>
+                    <p>Fecha de envío: ${new Date(submission.submittedAt).toLocaleString()}</p>
+                `;
+                resultsDiv.appendChild(resultDiv);
+            });
+        }
+
+        function closeExamResultsModal() {
+            document.getElementById('exam-results-modal').style.display = 'none';
+        }
+
+        // Delete exam function
+        async function deleteExam(examId) {
+            if (confirm('¿Eliminar examen? Esta acción no se puede deshacer.')) {
+                try {
+                    await axios.delete(`http://localhost:8000/exams/${examId}`, { headers: getAuthHeaders() });
+                    alert('Examen eliminado exitosamente');
+                    await loadExams();
+                } catch (error) {
+                    console.error('Error deleting exam:', error);
+                    alert('Error eliminando examen: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        }
+
+        // Update login to show exam button for tutors
+        // In the login event listener, add:
+        // document.getElementById('new-exam-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
+
         async function loadReminders() {
             try {
                 const response = await axios.get('http://localhost:8000/reminders', { headers: getAuthHeaders() });
@@ -2046,6 +2595,161 @@
                 }
             }
         };
+
+        // Submission modal functions
+        let currentSubmissionType = null;
+        let currentSubmissionId = null;
+        let selectedFiles = [];
+
+        function openSubmissionModal(type, id) {
+            currentSubmissionType = type;
+            currentSubmissionId = id;
+            selectedFiles = [];
+
+            // Reset form
+            document.getElementById('submission-content').value = '';
+            document.getElementById('file-list').innerHTML = '';
+            document.getElementById('submission-status').style.display = 'none';
+
+            // Show modal
+            document.getElementById('submission-modal').style.display = 'flex';
+
+            // Set up drag and drop
+            setupFileDropArea();
+        }
+
+        function closeSubmissionModal() {
+            document.getElementById('submission-modal').style.display = 'none';
+            currentSubmissionType = null;
+            currentSubmissionId = null;
+            selectedFiles = [];
+        }
+
+        function setupFileDropArea() {
+            const dropArea = document.getElementById('file-drop-area');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropArea.classList.add('dragover');
+            }
+
+            function unhighlight(e) {
+                dropArea.classList.remove('dragover');
+            }
+
+            dropArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+        }
+
+        function handleFiles(files) {
+            [...files].forEach(file => {
+                if (selectedFiles.length >= 10) {
+                    alert('Máximo 10 archivos permitidos');
+                    return;
+                }
+                selectedFiles.push(file);
+                displayFile(file);
+            });
+        }
+
+        function displayFile(file) {
+            const fileList = document.getElementById('file-list');
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                <button type="button" class="remove-file" onclick="removeFile('${file.name}')">×</button>
+            `;
+            fileList.appendChild(fileItem);
+        }
+
+        function removeFile(fileName) {
+            selectedFiles = selectedFiles.filter(file => file.name !== fileName);
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            selectedFiles.forEach(displayFile);
+        }
+
+        // Handle file input change
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const files = e.target.files;
+            handleFiles(files);
+        });
+
+        // Submit submission
+        async function submitSubmission() {
+            if (!currentSubmissionId || !currentSubmissionType) {
+                alert('Error: No hay tarea seleccionada');
+                return;
+            }
+
+            const content = document.getElementById('submission-content').value;
+            const statusDiv = document.getElementById('submission-status');
+
+            if (selectedFiles.length === 0) {
+                alert('Selecciona al menos un archivo');
+                return;
+            }
+
+            try {
+                statusDiv.className = 'submission-status pending';
+                statusDiv.textContent = 'Enviando entrega...';
+                statusDiv.style.display = 'block';
+
+                const formData = new FormData();
+                formData.append('taskId', currentSubmissionId.toString());
+                if (content) {
+                    formData.append('content', content);
+                }
+
+                selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+
+                const response = await axios.post('http://localhost:8000/submissions', formData, {
+                    headers: {
+                        ...getAuthHeaders(),
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                statusDiv.className = 'submission-status submitted';
+                statusDiv.textContent = 'Entrega realizada exitosamente';
+
+                // Close modal after success
+                setTimeout(() => {
+                    closeSubmissionModal();
+                    // Refresh tasks to show updated status
+                    refreshData();
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error submitting:', error);
+                statusDiv.className = 'submission-status rejected';
+                statusDiv.textContent = 'Error: ' + (error.response?.data?.message || error.message);
+            }
+        }
     </script>
 </body>
 </html>

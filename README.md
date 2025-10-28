@@ -7,7 +7,7 @@
 [![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
 [![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
-Un backend completo y robusto para la gestión de proyectos educativos, desarrollado con tecnologías modernas. Incluye autenticación de usuarios con roles diferenciados (Tutor/Alumno), gestión de proyectos y tareas con sistema de entregas y calificaciones, chat en tiempo real (público y privado), sistema completo de notificaciones y recordatorios automáticos.
+Un backend completo y robusto para la gestión de proyectos educativos, desarrollado con tecnologías modernas. Incluye autenticación de usuarios con roles diferenciados (Tutor/Alumno), gestión de proyectos y tareas con sistema de entregas y calificaciones, chat en tiempo real (público y privado), sistema completo de notificaciones y recordatorios automáticos, sistema de exámenes con IA integrada, y logs de actividad completos.
 
 ## ✨ Características Principales
 
@@ -29,6 +29,14 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - **Sistema de Entregas**: Los estudiantes pueden enviar tareas con archivos adjuntos y contenido textual
 - **Calificación de Entregas**: Los tutores pueden calificar entregas con retroalimentación
 - **Gestión de Archivos**: Subida y descarga segura de archivos (PDF, Word, Excel, etc.)
+
+### 📝 Sistema de Exámenes
+- **Generación Automática de Preguntas**: Integración con IA (Gemini) para crear exámenes personalizados
+- **Tipos de Pregunta Variados**: Opción múltiple, verdadero/falso y respuesta corta
+- **Asignación Flexible**: Exámenes asignados individualmente a estudiantes específicos
+- **Calificación Automática**: Sistema de puntuación automática con revisión detallada (escala 1-5)
+- **Control de Tiempo**: Límite de tiempo configurable por examen
+- **Notificaciones en Tiempo Real**: Alertas para asignación y finalización de exámenes
 
 ### 💬 Sistema de Chat en Tiempo Real
 - **Chat público** para comunicación general
@@ -57,6 +65,7 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - **Autenticación**: JWT (JSON Web Tokens)
 - **Encriptación**: bcrypt
 - **Validación**: Zod
+- **IA**: Google Gemini API para generación de exámenes
 - **Cliente Provisional**: HTML/CSS/JavaScript puro
 
 ## 📦 Instalación y Configuración
@@ -83,6 +92,7 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
    ```env
    DATABASE_URL="file:./dev.db"
    JWT_SECRET="jwt-super-seguro"
+   GEMINI_API_KEY="tu-clave-de-gemini-api"
    PORT=8000
    ```
 
@@ -162,6 +172,15 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - `GET /submissions/:submissionId/files/:fileId/download` - Descargar archivo
 - `GET /submissions/stats` - Obtener estadísticas de entregas
 
+#### Exámenes
+- `POST /exams` - Crear examen (tutores)
+- `GET /exams/student` - Obtener exámenes asignados (estudiantes)
+- `GET /exams/tutor` - Obtener exámenes creados (tutores)
+- `GET /exams/:id/questions` - Obtener preguntas de un examen (estudiantes)
+- `POST /exams/submit` - Enviar respuestas de examen (estudiantes)
+- `GET /exams/:id/results` - Obtener resultados y estadísticas (tutores)
+- `DELETE /exams/:id` - Eliminar examen (tutores)
+
 ### Eventos WebSocket
 
 #### Chat Público
@@ -215,6 +234,7 @@ src/
 │   ├── notificationController.ts
 │   ├── reminderController.ts
 │   ├── submissionController.ts
+│   ├── examController.ts
 │   └── reportController.ts
 ├── routes/               # Definición de rutas
 │   ├── authRoutes.ts
@@ -225,6 +245,7 @@ src/
 │   ├── notificationRoutes.ts
 │   ├── reminderRoutes.ts
 │   ├── submissionRoutes.ts
+│   ├── examRoutes.ts
 │   └── reportRoutes.ts
 ├── service/              # Lógica de negocio
 │   ├── authService.ts
@@ -236,6 +257,8 @@ src/
 │   ├── reminderService.ts
 │   ├── submissionService.ts
 │   ├── activityLogService.ts
+│   ├── aiService.ts
+│   ├── examService.ts
 │   └── reportService.ts
 ├── middleware/           # Middlewares personalizados
 ├── model/                # Modelos y esquemas Zod

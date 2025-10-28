@@ -8,7 +8,7 @@
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
-    "target": "esnext",
+    "target": "es2015",
     "types": [],
     // For nodejs:
     // "lib": ["esnext"],
@@ -22,7 +22,7 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    // "exactOptionalPropertyTypes": true,
 
     // Style Options
     // "noImplicitReturns": true,

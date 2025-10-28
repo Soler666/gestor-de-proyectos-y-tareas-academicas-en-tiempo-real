@@ -10,6 +10,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.14.0",
     "@types/multer": "^2.0.0",
     "@types/node-cron": "^3.0.11",
@@ -21,6 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
+    "openai": "^6.7.0",
     "socket.io": "^4.8.1",
     "zod": "^4.1.3"
   },
