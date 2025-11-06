@@ -5,3 +5,6 @@ node_modules
 /src/generated/prisma
 /prisma/dev.db
 dist
+
+# Google credentials
+src/config/google-credentials.json

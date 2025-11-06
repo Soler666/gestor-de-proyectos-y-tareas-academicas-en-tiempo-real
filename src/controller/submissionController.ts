@@ -1,16 +1,10 @@
-import { RequestHandler, Request } from 'express';
+import { RequestHandler } from 'express';
+import { AuthUser } from '../types/auth';
+import { IUser } from '../model/IUser';
 import { SubmissionService } from '../service/submissionService';
 import multer from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
-
-interface CustomRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
 
 const submissionService = SubmissionService.getInstance();
 
@@ -69,13 +63,14 @@ const upload = multer({
 export const uploadMiddleware = upload.array('files', 10);
 
 // Crear una nueva entrega
-export const createSubmission: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createSubmission: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    if (req.user.role !== 'Alumno') {
+    if (!user.role || user.role.toUpperCase() !== 'ALUMNO') {
       return res.status(403).json({ message: 'Solo los alumnos pueden hacer entregas.' });
     }
 
@@ -88,7 +83,7 @@ export const createSubmission: RequestHandler = async (req: CustomRequest, res, 
 
     const submission = await submissionService.createSubmission(
       parseInt(taskId),
-      req.user!.id,
+      user.id,
       content,
       files
     );
@@ -103,17 +98,18 @@ export const createSubmission: RequestHandler = async (req: CustomRequest, res, 
 };
 
 // Obtener entregas del estudiante actual
-export const getStudentSubmissions: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getStudentSubmissions: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    if (req.user.role !== 'Alumno') {
+    if (!user.role || user.role.toUpperCase() !== 'ALUMNO') {
       return res.status(403).json({ message: 'Esta ruta es solo para alumnos.' });
     }
 
-    const submissions = await submissionService.getStudentSubmissions(req.user!.id);
+    const submissions = await submissionService.getStudentSubmissions(user.id);
     res.json(submissions);
   } catch (error) {
     next(error);
@@ -121,17 +117,18 @@ export const getStudentSubmissions: RequestHandler = async (req: CustomRequest, 
 };
 
 // Obtener entregas pendientes de calificación (para tutores)
-export const getSubmissionsForGrading: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getSubmissionsForGrading: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    if (req.user.role !== 'Tutor') {
+    if (!user.role || user.role.toUpperCase() !== 'TUTOR') {
       return res.status(403).json({ message: 'Esta ruta es solo para tutores.' });
     }
 
-    const submissions = await submissionService.getSubmissionsForGrading(req.user!.id);
+    const submissions = await submissionService.getSubmissionsForGrading(user.id);
     res.json(submissions);
   } catch (error) {
     next(error);
@@ -139,13 +136,14 @@ export const getSubmissionsForGrading: RequestHandler = async (req: CustomReques
 };
 
 // Calificar una entrega
-export const gradeSubmission: RequestHandler = async (req: CustomRequest, res, next) => {
+export const gradeSubmission: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    if (req.user.role !== 'Tutor') {
+    if (!user.role || user.role.toUpperCase() !== 'TUTOR') {
       return res.status(403).json({ message: 'Solo los tutores pueden calificar entregas.' });
     }
 
@@ -162,7 +160,7 @@ export const gradeSubmission: RequestHandler = async (req: CustomRequest, res, n
 
     const updatedSubmission = await submissionService.gradeSubmission(
       parseInt(id),
-      req.user!.id,
+      user.id,
       grade,
       feedback
     );
@@ -177,9 +175,10 @@ export const gradeSubmission: RequestHandler = async (req: CustomRequest, res, n
 };
 
 // Obtener una entrega específica
-export const getSubmissionById: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getSubmissionById: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
@@ -191,8 +190,8 @@ export const getSubmissionById: RequestHandler = async (req: CustomRequest, res,
 
     const submission = await submissionService.getSubmissionById(
       parseInt(id),
-      req.user!.id,
-      req.user!.role
+      user.id,
+      user.role
     );
 
     res.json(submission);
@@ -202,13 +201,14 @@ export const getSubmissionById: RequestHandler = async (req: CustomRequest, res,
 };
 
 // Eliminar una entrega
-export const deleteSubmission: RequestHandler = async (req: CustomRequest, res, next) => {
+export const deleteSubmission: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    if (req.user.role !== 'Alumno') {
+    if (!user.role || user.role.toUpperCase() !== 'ALUMNO') {
       return res.status(403).json({ message: 'Solo los alumnos pueden eliminar sus entregas.' });
     }
 
@@ -218,7 +218,7 @@ export const deleteSubmission: RequestHandler = async (req: CustomRequest, res, 
       return res.status(400).json({ message: 'ID de entrega es requerido.' });
     }
 
-    await submissionService.deleteSubmission(parseInt(id), req.user!.id);
+    await submissionService.deleteSubmission(parseInt(id), user.id);
 
     res.json({ message: 'Entrega eliminada exitosamente' });
   } catch (error) {
@@ -227,9 +227,10 @@ export const deleteSubmission: RequestHandler = async (req: CustomRequest, res, 
 };
 
 // Descargar archivo de una entrega
-export const downloadFile: RequestHandler = async (req: CustomRequest, res, next) => {
+export const downloadFile: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
@@ -242,8 +243,8 @@ export const downloadFile: RequestHandler = async (req: CustomRequest, res, next
     // Verificar que el usuario tiene acceso a la entrega
     const submission = await submissionService.getSubmissionById(
       parseInt(submissionId),
-      req.user!.id,
-      req.user!.role
+      user.id,
+      user.role
     );
 
     // Buscar el archivo en la entrega
@@ -265,13 +266,14 @@ export const downloadFile: RequestHandler = async (req: CustomRequest, res, next
 };
 
 // Obtener estadísticas de entregas
-export const getSubmissionStats: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getSubmissionStats: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUser;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    const tutorId = req.user.role === 'Tutor' ? req.user!.id : undefined;
+  const tutorId = (user.role && user.role.toUpperCase() === 'TUTOR') ? user.id : undefined;
     const stats = await submissionService.getSubmissionStats(tutorId);
 
     res.json(stats);

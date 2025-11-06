@@ -55,7 +55,33 @@ const taskService = {
     }
     return await prisma.task.update({ where: { id }, data: fixedData });
   },
-  delete: async (id: number) => await prisma.task.delete({ where: { id } }),
+  delete: async (id: number) => {
+    // Obtener la tarea antes de eliminarla para acceder al googleEventId
+    const task = await prisma.task.findUnique({
+      where: { id },
+      select: { googleEventId: true, responsibleId: true },
+    });
+
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
+    // Eliminar evento de calendario si existe
+    if (task.googleEventId && task.responsibleId) {
+      try {
+        const { CalendarService } = await import('./calendarService');
+        const calendarService = CalendarService.getInstance();
+        await calendarService.deleteEvent(task.responsibleId, task.googleEventId);
+        console.log(`Evento de calendario eliminado para la tarea ${id}`);
+      } catch (error: any) {
+        console.warn(`Error eliminando evento de calendario para tarea ${id}:`, error.message);
+        // No fallar la eliminación de la tarea si falla la eliminación del calendario
+      }
+    }
+
+    // Eliminar la tarea de la base de datos
+    return await prisma.task.delete({ where: { id } });
+  },
 };
 
 export default taskService;

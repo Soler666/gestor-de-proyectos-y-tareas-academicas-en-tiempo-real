@@ -1,7 +1,10 @@
-import express, { Request, Response } from 'express'
+import express, { Request, Response, NextFunction, RequestHandler } from 'express'
 import path from 'path'
 import showRequests from './middleware/showRequest'
 import cors from 'cors'
+import passport from './service/googleAuthService'
+import cookieParser from 'cookie-parser'
+import { config } from './config/config'
 import authRouter from './routes/authRoutes'
 import userRoutes from './routes/userRoutes'
 import projectRoutes from './routes/projectRoutes'
@@ -12,24 +15,60 @@ import reportRoutes from './routes/reportRoutes'
 import reminderRoutes from './routes/reminderRoutes'
 import submissionRoutes from './routes/submissionRoutes'
 import examRoutes from './routes/examRoutes'
+import googleRoutes from './routes/googleRoutes'
+import profileRoutes from './routes/profileRoutes'
+import adminRoutes from './routes/adminRoutes'
+import chatbotRoutes from './routes/chatbotRoutes'
 
 const app = express()
-const port = process.env.PORT || 8000
+const port = config.PORT
 
-app.use(express.json())
+// Middleware de seguridad básico
+app.use(express.json({ limit: '10mb' }))
+// Servir archivos estáticos desde la carpeta 'public' (ruta para assets y páginas públicas)
+app.use(express.static(path.join(process.cwd(), 'public')))
+// Analizar cookies para facilitar autenticación basada en cookie
+app.use(cookieParser())
+// También mantener la raíz del proyecto estática para compatibilidad con archivos existentes
+app.use(express.static(process.cwd()))
 app.use(showRequests)
+
+// Configuración CORS más segura
 app.use(cors({
-  origin: '*',
+  origin: config.CORS_ORIGIN,
   exposedHeaders: ['token'],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
 }))
 
-app.get('/', (_req: Request, res: Response) => {
-  res.sendFile(path.join(process.cwd(), 'client.html'))
-})
+// Middleware de seguridad adicional
+const securityMiddleware: RequestHandler = (req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('X-XSS-Protection', '1; mode=block')
+  next()
+}
 
-app.get('/ping', (_req: Request, res: Response) => {
+app.use(securityMiddleware)
+
+// Inicializar Passport
+app.use(passport.initialize())
+
+const homeHandler: RequestHandler = (_req, res) => {
+  res.sendFile(path.join(process.cwd(), 'client.html'))
+}
+
+const pingHandler: RequestHandler = (_req, res) => {
   res.send({ message: 'pong' })
+}
+
+app.get('/', homeHandler)
+app.get('/ping', pingHandler)
+
+// Página pública para completar perfil
+app.get('/profile-setup', (_req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public', 'profile-setup.html'))
 })
 
 app.use('/auth', authRouter)
@@ -42,6 +81,10 @@ app.use('/reports', reportRoutes)
 app.use('/reminders', reminderRoutes)
 app.use('/submissions', submissionRoutes)
 app.use('/exams', examRoutes)
+app.use('/google', googleRoutes)
+app.use('/profile', profileRoutes)
+app.use('/admin', adminRoutes)
+app.use('/chatbot', chatbotRoutes)
 
 //TODO: añadir validaciones con zod (listo)
 

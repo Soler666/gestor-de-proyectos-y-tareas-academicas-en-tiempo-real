@@ -6,8 +6,8 @@ const router = Router();
 
 router.use(verifyToken);
 
-router.get('/messages', getChatMessages);
-router.get('/private/:otherUserId', getPrivateMessages);
-router.post('/private', createPrivateMessage);
+router.get('/messages', getChatMessages as any);
+router.get('/private/:otherUserId', getPrivateMessages as any);
+router.post('/private', createPrivateMessage as any);
 
 export default router;

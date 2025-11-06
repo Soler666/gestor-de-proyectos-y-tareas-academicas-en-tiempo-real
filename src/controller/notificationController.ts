@@ -4,15 +4,8 @@ import { getIO } from '../config/socket';
 
 const prisma = new PrismaClient();
 // nota, hacer clase service para que no se repita codigo y sea mas organizado
-interface CustomRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
 
-export const createNotification: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createNotification: RequestHandler = async (req, res, next) => {
   const { userId, message, type, relatedId, relatedType } = req.body;
   const notification = await prisma.notification.create({
     data: {
@@ -23,21 +16,26 @@ export const createNotification: RequestHandler = async (req: CustomRequest, res
       relatedType,
     },
   });
+  // Emit to the specific user if it's a direct notification
+  if (userId) {
+    getIO().to(`user_${userId}`).emit('notification', notification);
+  }
+
   res.status(201).json(notification);
 };
 
-export const getUserNotifications: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getUserNotifications: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
   const notifications = await prisma.notification.findMany({
-    where: { userId: req.user.id },
+    where: { userId: (req.user as any).id },
     orderBy: { createdAt: 'desc' },
   });
   res.json(notifications);
 };
 
-export const markAsRead: RequestHandler = async (req: CustomRequest, res, next) => {
+export const markAsRead: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
@@ -45,7 +43,7 @@ export const markAsRead: RequestHandler = async (req: CustomRequest, res, next) 
   const notification = await prisma.notification.findUnique({
     where: { id },
   });
-  if (!notification || notification.userId !== req.user.id) {
+  if (!notification || notification.userId !== (req.user as any).id) {
     return res.status(404).json({ message: 'Notificación no encontrada' });
   }
   const updated = await prisma.notification.update({
@@ -55,18 +53,18 @@ export const markAsRead: RequestHandler = async (req: CustomRequest, res, next) 
   res.json(updated);
 };
 
-export const markAllAsRead: RequestHandler = async (req: CustomRequest, res, next) => {
+export const markAllAsRead: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
   await prisma.notification.updateMany({
-    where: { userId: req.user.id, isRead: false },
+    where: { userId: (req.user as any).id, isRead: false },
     data: { isRead: true },
   });
   res.json({ message: 'Todas las notificaciones marcadas como leídas' });
 };
 
-export const deleteNotification: RequestHandler = async (req: CustomRequest, res, next) => {
+export const deleteNotification: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
@@ -74,7 +72,7 @@ export const deleteNotification: RequestHandler = async (req: CustomRequest, res
   const notification = await prisma.notification.findUnique({
     where: { id },
   });
-  if (!notification || notification.userId !== req.user.id) {
+  if (!notification || notification.userId !== (req.user as any).id) {
     return res.status(404).json({ message: 'Notificación no encontrada' });
   }
   await prisma.notification.delete({
@@ -84,8 +82,7 @@ export const deleteNotification: RequestHandler = async (req: CustomRequest, res
 };
 
 // Helper function to create notification and emit socket event
-export const createAndEmitNotification = async (userId: number, message: string, type: string, relatedId?: number, relatedType?: string) => {
-
+export const createAndEmitNotification = async (userId: number, message: string, type: string, relatedId?: number, relatedType?: string, targetTutorId?: number) => {
   const notification = await prisma.notification.create({
     data: {
       userId,
@@ -97,26 +94,30 @@ export const createAndEmitNotification = async (userId: number, message: string,
   });
   // Emit to the specific user
   const io = getIO();
+  // Emit to the primary user
   io.to(`user_${userId}`).emit('notification', notification);
+  // If there's a specific tutor to notify (e.g., for task updates), emit to them too
+  if (targetTutorId && targetTutorId !== userId) {
+    io.to(`user_${targetTutorId}`).emit('notification', notification);
+  }
   return notification;
-
 };
 
 // Advanced notification features
-export const createBulkNotifications: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createBulkNotifications: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    const { userIds, message, type, relatedId, relatedType } = req.body;
+    const { message, type, relatedId, relatedType, targetUserIds } = req.body;
 
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({ message: 'Se requiere una lista de userIds.' });
+    if (!Array.isArray(targetUserIds) || targetUserIds.length === 0) {
+      return res.status(400).json({ message: 'Se requiere una lista de IDs de usuario para notificaciones masivas.' });
     }
 
     const notifications = await Promise.all(
-      userIds.map(userId =>
+      targetUserIds.map((userId: number) =>
         prisma.notification.create({
           data: {
             userId,
@@ -141,13 +142,13 @@ export const createBulkNotifications: RequestHandler = async (req: CustomRequest
   }
 };
 
-export const createScheduledNotification: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createScheduledNotification: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    const { userId, message, type, relatedId, relatedType, scheduledAt } = req.body;
+    const { message, type, relatedId, relatedType, scheduledAt, targetUserId } = req.body;
 
     if (!scheduledAt) {
       return res.status(400).json({ message: 'Se requiere fecha de programación.' });
@@ -160,13 +161,21 @@ export const createScheduledNotification: RequestHandler = async (req: CustomReq
 
     // Nota: Los campos scheduledAt e isScheduled no existen en el esquema actual
     // En una implementación real, se agregarían a la tabla de notificaciones
+    // For now, this creates an immediate notification.
+    // A full scheduled notification system would require:
+    // 1. Adding `scheduledAt` and `isScheduled` fields to the Notification model in Prisma.
+    // 2. A background job (like in reminderService) to check and emit these notifications when their scheduledAt time arrives.
+    // For this example, we'll create it immediately and log that it's "scheduled"
+    console.log(`[WARNING] Scheduled notification for user ${targetUserId || (req.user as any).id} at ${scheduledDate.toISOString()} is not fully implemented. Creating immediate notification.`);
+
     const notification = await prisma.notification.create({
       data: {
-        userId,
+        userId: targetUserId || (req.user as any).id,
         message,
         type,
         relatedId: relatedId ?? null,
         relatedType: relatedType ?? null,
+        // In a real implementation, scheduledAt and isScheduled would be stored here
       },
     });
 
@@ -176,13 +185,13 @@ export const createScheduledNotification: RequestHandler = async (req: CustomReq
   }
 };
 
-export const getNotificationStats: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getNotificationStats: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    const userId = req.user.id;
+    const userId = (req.user as any).id;
 
     // Estadísticas de notificaciones del usuario
     const totalNotifications = await prisma.notification.count({
@@ -225,7 +234,7 @@ export const getNotificationStats: RequestHandler = async (req: CustomRequest, r
   }
 };
 
-export const getNotificationPreferences: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getNotificationPreferences: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -248,7 +257,7 @@ export const getNotificationPreferences: RequestHandler = async (req: CustomRequ
   }
 };
 
-export const updateNotificationPreferences: RequestHandler = async (req: CustomRequest, res, next) => {
+export const updateNotificationPreferences: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });

@@ -165,7 +165,7 @@ export class ReminderService {
   public cancelReminder(jobId: string) {
     const job = this.cronJobs.get(jobId);
     if (job) {
-      job.destroy();
+      job.stop();
       this.cronJobs.delete(jobId);
     }
   }
@@ -234,7 +234,7 @@ export class ReminderService {
       const jobId = `reminder_${id}`;
       const existingJob = this.cronJobs.get(jobId);
       if (existingJob) {
-        existingJob.destroy();
+        existingJob.stop();
         this.cronJobs.delete(jobId);
       }
 
@@ -266,7 +266,7 @@ export class ReminderService {
     const jobId = `reminder_${id}`;
     const job = this.cronJobs.get(jobId);
     if (job) {
-      job.destroy();
+      job.stop();
       this.cronJobs.delete(jobId);
     }
 

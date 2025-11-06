@@ -13,6 +13,7 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 
 ### 👥 Gestión de Usuarios
 - **Autenticación JWT** con roles diferenciados (Tutor/Alumno)
+- **Autenticación Social**: Integración con Google OAuth 2.0
 - Registro e inicio de sesión seguro
 - Gestión completa de perfiles de usuario
 
@@ -38,6 +39,13 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - **Control de Tiempo**: Límite de tiempo configurable por examen
 - **Notificaciones en Tiempo Real**: Alertas para asignación y finalización de exámenes
 
+### 🔐 Integración con Google Services
+- **Autenticación OAuth 2.0**: Login social con Google
+- **Gmail Integration**: Envío automático de notificaciones por email
+- **Google Calendar**: Sincronización automática de eventos (tareas, proyectos, exámenes)
+- **Cuenta de Servicio**: Envío de emails del sistema usando credenciales de servicio
+- **Tokens de Usuario**: Envío personalizado usando tokens OAuth del usuario
+
 ### 💬 Sistema de Chat en Tiempo Real
 - **Chat público** para comunicación general
 - **Chat privado** entre usuarios individuales
@@ -57,6 +65,14 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - **Integración con notificaciones** en tiempo real
 - **Programación con Cron** para ejecución automática
 
+### 🤖 Sistema de Chatbot con IA
+- **Chatbot Educativo**: Asistente inteligente para búsqueda de información general
+- **Integración con Google Gemini AI**: Respuestas contextuales y coherentes
+- **Memoria de Conversación**: Mantiene contexto en hilos de diálogo independientes
+- **Restricciones Éticas**: Rechaza solicitudes relacionadas con tareas escolares o calificaciones
+- **Múltiples Conversaciones**: Gestión de varios hilos de diálogo simultáneos
+- **Extracción de Enlaces**: Identifica fuentes confiables en las respuestas
+
 ## 🛠️ Tecnologías Utilizadas
 
 - **Backend**: Node.js + TypeScript + Express.js
@@ -65,7 +81,7 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - **Autenticación**: JWT (JSON Web Tokens)
 - **Encriptación**: bcrypt
 - **Validación**: Zod
-- **IA**: Google Gemini API para generación de exámenes
+- **IA**: Google Gemini API para generación de exámenes y chatbot educativo
 - **Cliente Provisional**: HTML/CSS/JavaScript puro
 
 ## 📦 Instalación y Configuración
@@ -94,6 +110,11 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
    JWT_SECRET="jwt-super-seguro"
    GEMINI_API_KEY="tu-clave-de-gemini-api"
    PORT=8000
+
+   # Google OAuth 2.0 (opcional)
+   GOOGLE_CLIENT_ID="tu-google-client-id"
+   GOOGLE_CLIENT_SECRET="tu-google-client-secret"
+   GOOGLE_CALLBACK_URL="http://localhost:8000/auth/google/callback"
    ```
 
 4. **Genera el cliente de Prisma**
@@ -121,6 +142,8 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 #### Autenticación
 - `POST /auth/register` - Registro de nuevos usuarios
 - `POST /auth/login` - Inicio de sesión
+- `GET /auth/google` - Iniciar autenticación con Google
+- `GET /auth/google/callback` - Callback de Google OAuth
 
 #### Usuarios
 - `GET /user/` - Lista de todos los usuarios
@@ -161,6 +184,26 @@ Un backend completo y robusto para la gestión de proyectos educativos, desarrol
 - `DELETE /reminders/:id` - Eliminar recordatorio
 - `POST /reminders/schedule` - Programar recordatorio (legacy)
 - `DELETE /reminders/job/:jobId` - Cancelar recordatorio programado (legacy)
+
+#### Chatbot con IA
+- `GET /chatbot/conversations` - Obtener conversaciones del usuario
+- `GET /chatbot/conversations/:conversationId` - Obtener conversación específica
+- `POST /chatbot/conversations` - Crear nueva conversación
+- `POST /chatbot/conversations/:conversationId/messages` - Enviar mensaje al chatbot
+- `DELETE /chatbot/conversations/:conversationId` - Eliminar conversación
+
+#### Google Services
+- `POST /google/send-notification` - Enviar notificación por email
+- `POST /google/send-report` - Enviar reporte por email
+- `POST /google/tasks/:taskId/sync-calendar` - Sincronizar tarea con Calendar
+- `POST /google/projects/:projectId/sync-calendar` - Sincronizar proyecto con Calendar
+- `POST /google/exams/:examId/sync-calendar` - Sincronizar examen con Calendar
+- `GET /google/calendar/events` - Obtener eventos del calendario
+- `PUT /google/calendar/events/:eventId` - Actualizar evento
+- `DELETE /google/calendar/events/:eventId` - Eliminar evento
+
+#### Administración
+- `POST /admin/clear-google-tokens` - Limpiar tokens de Google (tutores)
 
 #### Entregas
 - `POST /submissions` - Crear entrega (con subida de archivos)
@@ -231,10 +274,12 @@ src/
 │   ├── projectController.ts
 │   ├── taskController.ts
 │   ├── chatController.ts
+│   ├── chatbotController.ts
 │   ├── notificationController.ts
 │   ├── reminderController.ts
 │   ├── submissionController.ts
 │   ├── examController.ts
+│   ├── profileController.ts
 │   └── reportController.ts
 ├── routes/               # Definición de rutas
 │   ├── authRoutes.ts
@@ -242,10 +287,14 @@ src/
 │   ├── projectRoutes.ts
 │   ├── taskRoutes.ts
 │   ├── chatRoutes.ts
+│   ├── chatbotRoutes.ts
 │   ├── notificationRoutes.ts
 │   ├── reminderRoutes.ts
 │   ├── submissionRoutes.ts
 │   ├── examRoutes.ts
+│   ├── googleRoutes.ts
+│   ├── adminRoutes.ts
+│   ├── profileRoutes.ts
 │   └── reportRoutes.ts
 ├── service/              # Lógica de negocio
 │   ├── authService.ts
@@ -253,16 +302,22 @@ src/
 │   ├── projectService.ts
 │   ├── taskService.ts
 │   ├── chatService.ts
+│   ├── chatbotService.ts
 │   ├── notificationScheduler.ts
 │   ├── reminderService.ts
 │   ├── submissionService.ts
 │   ├── activityLogService.ts
 │   ├── aiService.ts
 │   ├── examService.ts
+│   ├── calendarService.ts
+│   ├── gmailService.ts
+│   ├── googleAuthService.ts
 │   └── reportService.ts
 ├── middleware/           # Middlewares personalizados
 ├── model/                # Modelos y esquemas Zod
-└── util/                 # Utilidades
+├── types/                # Definiciones de tipos TypeScript
+├── util/                 # Utilidades
+└── generated/            # Archivos generados automáticamente
 ```
 
 ## 🔒 Seguridad

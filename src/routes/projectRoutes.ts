@@ -6,10 +6,10 @@ const projectRoutes = Router();
 projectRoutes.use(verifyToken);
 
 projectRoutes
-  .post('/', createProject)
-  .get('/', getProjects)
-  .get('/:id', getProjectById)
-  .put('/:id', updateProject)
-  .delete('/:id', deleteProject);
+  .post('/', createProject as any)
+  .get('/', getProjects as any)
+  .get('/:id', getProjectById as any)
+  .put('/:id', updateProject as any)
+  .delete('/:id', deleteProject as any);
 
 export default projectRoutes;

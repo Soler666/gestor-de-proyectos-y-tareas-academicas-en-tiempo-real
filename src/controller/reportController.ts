@@ -1,43 +1,50 @@
-import { RequestHandler, Request } from 'express';
+import { RequestHandler } from 'express';
 import { PrismaClient } from '../generated/prisma';
 import { ActivityLogService } from '../service/activityLogService';
+import { AuthUser as AuthUserType } from '../types/auth';
 
 const prisma = new PrismaClient();
 
-interface CustomRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
-
 // Progreso de alumnos: tareas completadas vs asignadas
-export const getStudentProgress: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getStudentProgress: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    // Si es alumno, solo ver su propio progreso
-    // Si es tutor, ver todos los alumnos
-    const whereClause = req.user.role === 'Tutor' ? {} : { responsibleId: req.user.id };
-
-    const students = await prisma.user.findMany({
-      where: {
-        role: 'Alumno',
-        ...whereClause,
-      },
-      include: {
-        tasks: {
-          select: {
-            id: true,
-            status: true,
-            type: true,
+    const user = req.user as AuthUserType;
+  let students;
+  if (user.role && user.role.toUpperCase() === 'ALUMNO') {
+      // Un alumno solo ve su propio progreso
+      students = await prisma.user.findMany({
+        where: {
+          id: user.id,
+          role: 'ALUMNO',
+        },
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+              type: true,
+            },
           },
         },
-      },
-    });
+      });
+    } else { // Si es tutor o admin, ver todos los alumnos
+      students = await prisma.user.findMany({
+        where: { role: 'ALUMNO' },
+        include: {
+          tasks: {
+            select: {
+              id: true,
+              status: true,
+              type: true,
+            },
+          },
+        },
+      });
+    }
 
     const progress = students.map(student => {
       const totalTasks = student.tasks.length;
@@ -74,14 +81,15 @@ export const getStudentProgress: RequestHandler = async (req: CustomRequest, res
 };
 
 // Rendimiento por tutor
-export const getTutorPerformance: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getTutorPerformance: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUserType;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
     const tutors = await prisma.user.findMany({
-      where: { role: 'Tutor' },
+      where: { role: 'TUTOR' },
       include: {
         tutoredTasks: {
           include: {
@@ -129,9 +137,10 @@ export const getTutorPerformance: RequestHandler = async (req: CustomRequest, re
 };
 
 // Estadísticas de proyectos
-export const getProjectStats: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getProjectStats: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUserType;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
@@ -216,16 +225,17 @@ export const getProjectStats: RequestHandler = async (req: CustomRequest, res, n
 };
 
 // Dashboard con métricas clave
-export const getDashboardMetrics: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getDashboardMetrics: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUserType;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
     // Métricas generales
     const totalUsers = await prisma.user.count();
-    const totalStudents = await prisma.user.count({ where: { role: 'Alumno' } });
-    const totalTutors = await prisma.user.count({ where: { role: 'Tutor' } });
+  const totalStudents = await prisma.user.count({ where: { role: 'ALUMNO' } });
+  const totalTutors = await prisma.user.count({ where: { role: 'TUTOR' } });
 
     const totalTasks = await prisma.task.count();
     const completedTasks = await prisma.task.count({ where: { status: 'Completada' } });
@@ -309,16 +319,17 @@ export const getDashboardMetrics: RequestHandler = async (req: CustomRequest, re
 };
 
 // Endpoint para consultar historial de actividades
-export const getActivityHistory: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getActivityHistory: RequestHandler = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUserType;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
     const { userId, entityType, entityId, startDate, endDate, limit, offset } = req.query;
 
     // Solo tutores pueden ver historial de otros usuarios
-    if (userId && parseInt(userId as string) !== req.user.id && req.user.role !== 'Tutor') {
+    if (userId && parseInt(userId as string) !== user.id && (!user.role || user.role.toUpperCase() !== 'TUTOR')) {
       return res.status(403).json({ message: 'No autorizado para ver historial de otros usuarios.' });
     }
 
@@ -343,15 +354,16 @@ export const getActivityHistory: RequestHandler = async (req: CustomRequest, res
 };
 
 // Endpoint de bienvenida que registra la solicitud
-export const getWelcome: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getWelcome: RequestHandler = async (req: any, res, next) => {
   try {
-    if (!req.user) {
+    const user = req.user as AuthUserType;
+    if (!user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
     const activityLogService = ActivityLogService.getInstance();
     await activityLogService.logActivity({
-      userId: req.user.id,
+      userId: user.id,
       action: 'ACCESS',
       entityType: 'ENDPOINT',
       entityId: 0, // No hay entidad específica

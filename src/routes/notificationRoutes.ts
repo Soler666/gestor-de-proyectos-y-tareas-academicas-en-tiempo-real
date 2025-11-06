@@ -18,17 +18,17 @@ notificationRoutes.use(verifyToken);
 
 // Basic notification routes
 notificationRoutes
-  .post('/', createNotification)
-  .get('/', getUserNotifications)
-  .put('/:id/read', markAsRead)
-  .put('/read-all', markAllAsRead)
-  .delete('/:id', deleteNotification);
+  .post('/', createNotification as any)
+  .get('/', getUserNotifications as any)
+  .put('/:id/read', markAsRead as any)
+  .put('/read-all', markAllAsRead as any)
+  .delete('/:id', deleteNotification as any);
 
 // Advanced notification routes
-notificationRoutes.post('/bulk', createBulkNotifications);
-notificationRoutes.post('/scheduled', createScheduledNotification);
-notificationRoutes.get('/stats', getNotificationStats);
-notificationRoutes.get('/preferences', getNotificationPreferences);
-notificationRoutes.put('/preferences', updateNotificationPreferences);
+notificationRoutes.post('/bulk', createBulkNotifications as any);
+notificationRoutes.post('/scheduled', createScheduledNotification as any);
+notificationRoutes.get('/stats', getNotificationStats as any);
+notificationRoutes.get('/preferences', getNotificationPreferences as any);
+notificationRoutes.put('/preferences', updateNotificationPreferences as any);
 
 export default notificationRoutes;

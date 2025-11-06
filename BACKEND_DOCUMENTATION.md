@@ -158,43 +158,41 @@ El sistema de exámenes permite a los tutores crear exámenes con preguntas gene
 
 ```prisma
 model Exam {
-  id              Int      @id @default(autoincrement())
-  title           String
-  topics          String   // JSON stringified array
-  numQuestions    Int
-  timeLimit       Int      // in minutes
-  generatedQuestions String? // JSON stringified questions
-  createdBy       Int
-  createdByUser   User     @relation("CreatedExams", fields: [createdBy], references: [id])
-  assignedTo       String   // JSON stringified array of user IDs
-  status          String   @default("active") // "active", "inactive"
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  questions       ExamQuestion[]
-  submissions     ExamSubmission[]
+  id             Int             @id @default(autoincrement())
+  title          String
+  topics         String          // Temas especificados por el tutor (JSON array)
+  numQuestions   Int
+  timeLimit      Int             // En minutos
+  generatedQuestions String        // Preguntas generadas por IA (JSON string)
+  createdBy      Int             // ID del tutor
+  createdByUser  User            @relation("ExamCreator", fields: [createdBy], references: [id])
+  assignedTo     String          // IDs de estudiantes asignados (JSON string)
+  status         String          @default("active") // active, completed
+  createdAt      DateTime        @default(now())
+  submissions    ExamSubmission[]
+  questions      ExamQuestion[]
 }
 
 model ExamQuestion {
   id          Int      @id @default(autoincrement())
   examId      Int
-  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  exam        Exam     @relation(fields: [examId], references: [id])
   question    String
-  options     String?  // JSON stringified array for multiple choice
-  correctAnswer String
-  type        String   // "multiple_choice", "true_false", "short_answer"
+  options     String?    // Opciones para múltiple choice (JSON string)
+  correctAnswer String // Respuesta correcta
+  type        String   // multiple_choice, true_false, open_ended
 }
 
 model ExamSubmission {
   id          Int      @id @default(autoincrement())
   examId      Int
-  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  exam        Exam     @relation(fields: [examId], references: [id])
   studentId   Int
-  student     User     @relation("ExamSubmissions", fields: [studentId], references: [id])
-  answers     String   // JSON stringified answers object
-  score       Float    // 0-5 scale
-  review      String   // JSON stringified review object
+  student     User     @relation("ExamStudent", fields: [studentId], references: [id])
+  answers     String     // Respuestas del estudiante (JSON string)
+  score       Float    // Nota de 1.0 a 5.0
   submittedAt DateTime @default(now())
+  review      String?    // Revisión: correctas/incorrectas (JSON string)
 }
 ```
 
@@ -202,7 +200,7 @@ model ExamSubmission {
 
 #### Funcionalidades Implementadas:
 - **Generación de Preguntas con IA**: Integración con Gemini AI para crear preguntas automáticamente basadas en temas específicos.
-- **Gestión de Asignaciones**: Sistema flexible para asignar exámenes a estudiantes individuales.
+- **Gestión de Asignaciones**: Sistema flexible para asignar exámenes a estudiantes individuales usando arrays de IDs.
 - **Calificación Automática**: Sistema de puntuación automática con escala 1-5 y revisión detallada.
 - **Control de Acceso**: Validación estricta de permisos basada en roles y asignaciones.
 - **Manejo de Errores Robusto**: Try-catch blocks para parsing JSON seguro.
@@ -223,8 +221,8 @@ model ExamSubmission {
 - **Respuesta Corta**: Preguntas abiertas con validación de texto.
 
 #### Mensajes de Notificación (en español):
-- Para estudiantes (nuevo examen): `"Nuevo examen asignado: "${exam.title}". Tienes ${exam.timeLimit} minutos para completarlo."`
-- Para tutores (examen completado): `"El estudiante ${student.username} ha completado el examen "${exam.title}". Calificación: ${score.toFixed(1)}/5.0"`
+- Para estudiantes (nuevo examen): `"Nuevo examen asignado: "${data.title}". Tienes ${data.timeLimit} minutos para completarlo."`
+- Para tutores (examen completado): `"El estudiante ${student?.username} ha completado el examen "${exam.title}". Calificación: ${score.toFixed(1)}/5.0"`
 
 ### Controlador de Exámenes (examController.ts)
 
@@ -243,14 +241,11 @@ model ExamSubmission {
 - Validación de asignaciones: estudiantes solo acceden a exámenes asignados
 - Control de envíos: estudiantes no pueden enviar exámenes ya completados
 - Validación de datos: temas, número de preguntas, tiempo límite
+- **Validación de Schema**: Uso de Zod para validar estructura de datos, incluyendo array de IDs para assignedTo
 
 #### Respuestas de Error (en español):
 - `"No autenticado."`
 - `"Solo los tutores pueden crear exámenes."`
-- `"Título, temas y número de preguntas son requeridos."`
-- `"Número de preguntas debe estar entre 1 y 20."`
-- `"Tiempo límite debe estar entre 5 y 180 minutos."`
-- `"Debe asignar al menos un estudiante."`
 - `"Examen no encontrado."`
 - `"No asignado a este examen."`
 - `"Ya has enviado este examen."`
@@ -258,16 +253,32 @@ model ExamSubmission {
 
 ### Rutas de Exámenes (examRoutes.ts)
 
-Todas las rutas requieren autenticación JWT (`verifyToken` middleware).
+Todas las rutas requieren autenticación JWT (`verifyToken` middleware) y validación de schema con Zod.
 
 ```typescript
-router.post('/', createExam);
-router.get('/student', getExamsForStudent);
-router.get('/tutor', getExamsForTutor);
-router.get('/:id/questions', getExamQuestions);
-router.post('/submit', submitExam);
-router.get('/:id/results', getExamResults);
-router.delete('/:id', deleteExam);
+router.post('/', verifySchema(createExamSchema), createExamHandler as any);
+router.get('/student', getExamsForStudentHandler as any);
+router.get('/tutor', getExamsForTutorHandler as any);
+router.get('/:examId/questions', getExamQuestionsHandler as any);
+router.post('/submit', verifySchema(submitExamSchema), submitExamHandler as any);
+router.get('/:examId/results', getExamResultsHandler as any);
+router.delete('/:examId', deleteExamHandler as any);
+```
+
+### Modelos de Validación (examModel.ts)
+
+```typescript
+export const createExamSchema = z.object({
+  title: z.string().min(1).max(255),
+  topics: z.string().min(1),
+  numQuestions: z.number().int().min(1).max(50),
+  timeLimit: z.number().int().min(1).max(300), // minutos
+  assignedTo: z.array(z.number().int().positive()).min(1), // Array de IDs de estudiantes
+})
+
+export const submitExamSchema = z.object({
+  answers: z.record(z.string(), z.string()), // { questionId: answer }
+})
 ```
 
 ### Integración con la Aplicación Principal (app.ts)
@@ -302,7 +313,7 @@ npx prisma migrate dev --name add_exam_models
 - **Generación de Preguntas**: Las preguntas se generan automáticamente al crear un examen usando IA.
 - **Notificaciones**: Se envían automáticamente al asignar exámenes y completar envíos.
 - **Calificación**: Sistema automático con escala 1-5 y revisión detallada por pregunta.
-- **Asignaciones**: Sistema flexible de asignación individual por estudiante.
+- **Asignaciones**: Sistema flexible de asignación individual por estudiante usando arrays de IDs.
 - **Seguridad**: Control estricto de acceso basado en roles y asignaciones específicas.
 
 ### Consideraciones Técnicas
@@ -313,8 +324,191 @@ npx prisma migrate dev --name add_exam_models
 - **Scalability**: Diseño modular que permite expansión futura (exámenes grupales, timers, etc.).
 - **Data Integrity**: Relaciones de base de datos con cascada para mantener consistencia.
 - **Language**: Mensajes en español para consistencia con la plataforma universitaria.
+- **Validation**: Validación robusta con Zod schemas para asegurar integridad de datos.
 
 Esta implementación completa el sistema de exámenes, proporcionando una solución integral para evaluación educativa con IA, calificación automática y notificaciones en tiempo real.
+
+## 🔐 Integración con Google Services
+
+### Descripción General
+El sistema incluye integración completa con servicios de Google (OAuth 2.0, Gmail y Google Calendar) para proporcionar autenticación social, envío de notificaciones por email y sincronización de eventos del calendario.
+
+### Configuración de Google APIs
+
+#### Variables de Entorno Requeridas
+```env
+# Google OAuth 2.0
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:8000/auth/google/callback
+
+# Google Gemini AI (para exámenes)
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+#### Archivos de Credenciales
+- `src/config/google-credentials.json`: Credenciales de cuenta de servicio para Gmail y Calendar APIs
+
+#### APIs de Google Habilitadas
+- Google+ API (para OAuth básico)
+- Gmail API (para envío de emails)
+- Google Calendar API (para sincronización de eventos)
+
+### 🔑 Sistema de Autenticación Google OAuth
+
+#### Servicio de Autenticación (googleAuthService.ts)
+
+##### Funcionalidades Implementadas:
+- **Autenticación OAuth 2.0**: Integración con Passport.js para login social
+- **Vinculación de Cuentas**: Vincular cuentas existentes de Google con usuarios del sistema
+- **Creación Automática de Usuarios**: Registro automático al iniciar sesión con Google
+- **Gestión de Tokens**: Almacenamiento seguro de access tokens y refresh tokens
+- **Renovación Automática**: Refresh automático de tokens expirados
+
+##### Flujo de Autenticación:
+1. Usuario inicia sesión con Google
+2. Se obtiene perfil y tokens de Google
+3. Se busca usuario existente por `googleId` o email
+4. Si no existe, se crea nuevo usuario con rol por defecto 'ALUMNO'
+5. Se almacenan tokens para futuras operaciones
+
+##### Modelo de Datos (Campos agregados a User):
+```prisma
+model User {
+  // ... campos existentes
+  googleId          String?   @unique
+  googleAccessToken String?
+  googleRefreshToken String?
+  googleTokenExpiry DateTime?
+  calendarId        String?   // ID del calendario personal del usuario
+}
+```
+
+#### Rutas de Autenticación (authRoutes.ts)
+- `GET /auth/google`: Iniciar autenticación con Google
+- `GET /auth/google/callback`: Callback de Google OAuth
+- `POST /auth/login`: Login tradicional (JWT)
+- `POST /auth/register`: Registro tradicional
+
+### 📧 Servicio de Gmail (gmailService.ts)
+
+##### Funcionalidades Implementadas:
+- **Envío de Emails**: Envío de notificaciones usando cuenta de servicio o tokens de usuario
+- **Templates de Notificación**: Emails preformateados para diferentes eventos
+- **Gestión de Tokens**: Renovación automática de tokens expirados
+- **Reportes por Email**: Envío de reportes de progreso y calificaciones
+
+##### Métodos Principales:
+- `sendEmailWithServiceAccount()`: Envío usando cuenta de servicio (para notificaciones del sistema)
+- `sendEmailWithUserToken()`: Envío usando tokens del usuario (personalizado)
+- `sendNotificationEmail()`: Envío de notificaciones genéricas
+- `sendReportEmail()`: Envío de reportes (progreso, calificaciones, actividad)
+
+##### Templates de Email:
+- **Notificaciones de Sistema**: Recordatorios, asignaciones, calificaciones
+- **Reportes**: Progreso académico, estadísticas de rendimiento
+- **Formatos**: HTML básico con información estructurada
+
+### 📅 Servicio de Google Calendar (calendarService.ts)
+
+##### Funcionalidades Implementadas:
+- **Sincronización de Eventos**: Crear eventos en Google Calendar para tareas y exámenes
+- **Gestión de Calendarios**: Soporte para calendario principal y calendarios personalizados
+- **Recordatorios Automáticos**: Configuración de recordatorios en eventos
+- **Actualización de Eventos**: Modificar eventos existentes
+- **Eliminación de Eventos**: Remover eventos del calendario
+
+##### Métodos Principales:
+- `syncTaskToCalendar()`: Sincronizar tarea con evento de calendario
+- `syncProjectToCalendar()`: Sincronizar proyecto con evento de calendario
+- `syncExamToCalendar()`: Sincronizar examen con evento de calendario
+- `getCalendarEvents()`: Obtener eventos del calendario
+- `updateEvent()`: Actualizar evento existente
+- `deleteEvent()`: Eliminar evento
+
+##### Configuración de Eventos:
+```typescript
+const event = {
+  summary: `Entrega: ${task.name}`,
+  description: `Proyecto: ${project.name}\nTutor: ${tutor.username}`,
+  start: { dateTime: dueDate, timeZone: 'America/Bogota' },
+  end: { dateTime: endDate, timeZone: 'America/Bogota' },
+  reminders: {
+    useDefault: false,
+    overrides: [
+      { method: 'email', minutes: 1440 }, // 24 horas antes
+      { method: 'popup', minutes: 60 }    // 1 hora antes
+    ]
+  }
+}
+```
+
+### 🌐 Rutas de Google (googleRoutes.ts)
+
+#### Endpoints de Gmail:
+- `POST /google/send-notification`: Enviar notificación por email
+- `POST /google/send-report`: Enviar reporte por email
+
+#### Endpoints de Calendar:
+- `POST /google/tasks/:taskId/sync-calendar`: Sincronizar tarea
+- `POST /google/projects/:projectId/sync-calendar`: Sincronizar proyecto
+- `POST /google/exams/:examId/sync-calendar`: Sincronizar examen
+- `GET /google/calendar/events`: Obtener eventos
+- `PUT /google/calendar/events/:eventId`: Actualizar evento
+- `DELETE /google/calendar/events/:eventId`: Eliminar evento
+
+### 🔧 Rutas Administrativas (adminRoutes.ts)
+
+#### Gestión de Tokens Google:
+- `POST /admin/clear-google-tokens`: Limpiar tokens de Google de usuarios específicos
+  - **Parámetros**: `{ ids: number[] }` - Array de IDs de usuarios
+  - **Permisos**: Solo tutores
+  - **Función**: Elimina tokens de acceso, refresh y calendarId
+
+### Integración con la Aplicación Principal (app.ts)
+
+```typescript
+// Inicializar Passport con estrategia de Google
+app.use(passport.initialize());
+
+// Rutas de Google
+app.use('/google', googleRoutes);
+app.use('/admin', adminRoutes);
+```
+
+### Migración de Base de Datos
+
+Campos agregados al modelo User para integración con Google:
+```bash
+npx prisma migrate dev --name add_google_integration_fields
+```
+
+### Consideraciones de Seguridad
+
+- **Almacenamiento Seguro**: Tokens encriptados en base de datos
+- **Renovación Automática**: Refresh tokens para mantener acceso válido
+- **Permisos Limitados**: Solo scopes necesarios (calendar, gmail.send)
+- **Validación de Usuarios**: Verificación de propiedad de tokens
+- **Rate Limiting**: Control de frecuencia de operaciones con Google APIs
+
+### Funcionamiento Automático
+
+- **Renovación de Tokens**: Automática al detectar tokens expirados
+- **Sincronización**: Eventos creados automáticamente al asignar tareas/exámenes
+- **Notificaciones**: Emails enviados automáticamente para eventos importantes
+- **Gestión de Errores**: Fallback a notificaciones del sistema si fallan servicios de Google
+
+### Consideraciones Técnicas
+
+- **APIs de Google**: Uso de googleapis npm package
+- **Autenticación**: Passport.js con estrategia passport-google-oauth20
+- **Tokens**: Gestión de OAuth 2.0 con refresh automático
+- **Calendarios**: Soporte para múltiples calendarios por usuario
+- **Emails**: Envío tanto desde cuenta de servicio como desde cuentas de usuario
+- **Zona Horaria**: Configurada para America/Bogota
+- **Idioma**: Mensajes en español para consistencia
+
+Esta integración proporciona una experiencia completa con servicios de Google, mejorando la funcionalidad del sistema educativo con autenticación social, notificaciones por email y sincronización de calendario.
 
 ## 🔔 Sistema de Recordatorios
 
@@ -432,3 +626,127 @@ npx prisma migrate dev --name add_reminder_model
 - **Escalabilidad**: El servicio usa un Map para trackear jobs de cron, adecuado para cargas moderadas.
 
 Esta implementación completa el sistema de recordatorios, permitiendo tanto recordatorios automáticos como personalizados con integración total al ecosistema existente.
+
+## 🤖 Sistema de Chatbot con IA
+
+### Descripción General
+El sistema de chatbot con IA permite a los usuarios interactuar con un asistente inteligente especializado en búsqueda de información educativa. El chatbot utiliza Google Gemini AI para proporcionar respuestas contextuales, manteniendo memoria de conversación y permitiendo múltiples hilos de diálogo. Está diseñado exclusivamente para facilitar el aprendizaje autónomo mediante la búsqueda de información confiable en internet, rechazando cualquier solicitud relacionada con tareas escolares o actividades que involucren calificaciones.
+
+### Modelo de Datos (Prisma Schema)
+
+```prisma
+model ChatbotConversation {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation("UserChatbotConversations", fields: [userId], references: [id])
+  title       String?
+  messages    String   // JSON array de mensajes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
+
+### Servicio de Chatbot (chatbotService.ts)
+
+#### Funcionalidades Implementadas:
+- **Integración con Gemini AI**: Uso de Google Gemini 2.0 Flash para generar respuestas inteligentes.
+- **Memoria de Conversación**: Mantiene contexto de hasta los últimos 5 mensajes para respuestas coherentes.
+- **Detección de Cambio de Tema**: Resetea el contexto cuando detecta frases como "cambiando de tema" o "olvida lo anterior".
+- **Restricciones Éticas**: Rechaza solicitudes relacionadas con tareas escolares, exámenes o cualquier actividad académica calificada.
+- **Extracción de Enlaces**: Identifica y extrae enlaces reales de fuentes confiables en las respuestas.
+- **Generación de Títulos**: Crea títulos automáticos para conversaciones basados en el primer mensaje.
+
+#### Métodos Principales:
+- `processMessage()`: Procesa un mensaje del usuario y genera respuesta con IA, considerando historial y restricciones.
+- `shouldResetContext()`: Detecta frases que indican cambio de tema para resetear memoria.
+- `isRestrictedRequest()`: Verifica si el mensaje viola las reglas éticas del chatbot.
+- `extractLinks()`: Extrae enlaces de las respuestas generadas.
+- `generateConversationTitle()`: Crea títulos descriptivos para conversaciones.
+
+#### Restricciones Éticas:
+El chatbot está programado para rechazar cualquier solicitud que involucre:
+- Ayuda con tareas escolares o trabajos académicos
+- Preparación de exámenes o pruebas
+- Resolución de ejercicios calificados
+- Cualquier actividad que pueda afectar calificaciones
+
+En su lugar, dirige a los usuarios hacia el aprendizaje autónomo y búsqueda de información general.
+
+#### Mensajes de Rechazo (en español):
+- `"Lo siento, soy un chatbot educativo diseñado únicamente para ayudar con la búsqueda y explicación de información general. No puedo ayudar con tareas escolares, trabajos académicos, exámenes o cualquier actividad que involucre calificaciones."`
+
+### Controlador de Chatbot (chatbotController.ts)
+
+#### Endpoints CRUD:
+- `GET /chatbot/conversations`: Obtener todas las conversaciones del usuario
+- `GET /chatbot/conversations/:conversationId`: Obtener conversación específica
+- `POST /chatbot/conversations`: Crear nueva conversación
+- `POST /chatbot/conversations/:conversationId/messages`: Enviar mensaje al chatbot
+- `DELETE /chatbot/conversations/:conversationId`: Eliminar conversación
+
+#### Validaciones Implementadas:
+- Autenticación requerida para todas las rutas
+- Verificación de propiedad de conversaciones (solo el propietario puede acceder)
+- Validación de mensajes no vacíos
+- Control de existencia de conversaciones
+
+#### Respuestas de Error (en español):
+- `"No autenticado."`
+- `"ID de conversación requerido."`
+- `"ID de conversación inválido."`
+- `"Conversación no encontrada."`
+- `"Mensaje requerido."`
+- `"Error interno del servidor."`
+
+### Rutas de Chatbot (chatbotRoutes.ts)
+
+Todas las rutas requieren autenticación JWT (`verifyToken` middleware).
+
+```typescript
+router.get('/conversations', getChatbotConversations as any);
+router.get('/conversations/:conversationId', getChatbotConversation as any);
+router.post('/conversations', createChatbotConversation as any);
+router.post('/conversations/:conversationId/messages', sendChatbotMessage as any);
+router.delete('/conversations/:conversationId', deleteChatbotConversation as any);
+```
+
+### Integración con la Aplicación Principal (app.ts)
+
+Las rutas de chatbot están registradas en `/chatbot`:
+```typescript
+app.use('/chatbot', chatbotRoutes);
+```
+
+### Servicio de IA (aiService.ts - Integración)
+
+#### Funcionalidades de Generación de Respuestas:
+- **Prompts Estructurados**: Prompts del sistema en español con reglas claras de comportamiento.
+- **Formato de Respuesta**: Estructura organizada con títulos, explicaciones detalladas y enlaces.
+- **Validación de Contenido**: Aseguramiento de respuestas apropiadas y éticas.
+- **Manejo de Errores**: Fallback para casos donde la IA no está disponible.
+
+#### Estructura de Respuestas:
+Cada respuesta sigue un formato Markdown consistente:
+1. **Título Principal**: Claro y atractivo con emojis
+2. **Explicación Detallada**: Información organizada con listas y negritas
+3. **Fuentes y Enlaces**: Enlaces reales de fuentes confiables
+
+### Funcionamiento Automático
+
+- **Creación de Conversaciones**: Los usuarios pueden iniciar múltiples conversaciones independientes.
+- **Memoria Contextual**: Mantiene coherencia dentro de cada hilo de conversación.
+- **Reset de Contexto**: Detecta automáticamente cambios de tema y comienza nuevo contexto.
+- **Almacenamiento Seguro**: Todas las conversaciones se guardan en base de datos con JSON de mensajes.
+- **Títulos Automáticos**: Genera títulos descriptivos basados en el contenido inicial.
+
+### Consideraciones Técnicas
+
+- **IA Integration**: Uso de Google Gemini API con clave de API configurable.
+- **JSON Handling**: Parseo seguro de mensajes con try-catch para evitar corrupciones.
+- **Persistencia**: Conversaciones almacenadas en SQLite vía Prisma con actualizaciones automáticas.
+- **Seguridad**: Solo usuarios autenticados pueden acceder a sus conversaciones.
+- **Escalabilidad**: Patrón Singleton para el servicio, adecuado para cargas moderadas.
+- **Idioma**: Interfaz completamente en español para consistencia con la plataforma educativa.
+- **Ética**: Restricciones programadas para mantener el propósito educativo sin comprometer la integridad académica.
+
+Esta implementación proporciona un asistente de IA ético y educativo, complementando el ecosistema de aprendizaje con herramientas de búsqueda inteligente y contextual.

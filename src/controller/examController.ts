@@ -1,10 +1,16 @@
 import { Request, Response } from 'express';
+import { AuthUser } from '../types/auth';
 import { createExam, getExamsForStudent, getExamsForTutor, submitExam, getExamResults, getExamQuestions, deleteExam } from '../service/examService';
 
-export const createExamHandler = async (req: Request, res: Response) => {
+export const createExamHandler = async (req: Request, res: Response, next: any) => {
   try {
+    const user = req.user as AuthUser;
+    if (!user || user.role !== 'TUTOR') {
+      return res.status(403).json({ message: 'Solo los tutores pueden crear exámenes.' });
+    }
+
     const { title, topics, numQuestions, timeLimit, assignedTo } = req.body;
-    const createdBy = (req as any).user.id;
+    const createdBy = user.id;
 
     const exam = await createExam({
       title,
@@ -21,9 +27,9 @@ export const createExamHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getExamsForStudentHandler = async (req: Request, res: Response) => {
+export const getExamsForStudentHandler = async (req: Request, res: Response, next: any) => {
   try {
-    const studentId = (req as any).user.id;
+    const studentId = req.user!.id;
     const exams = await getExamsForStudent(studentId);
     res.json(exams);
   } catch (error) {
@@ -31,9 +37,9 @@ export const getExamsForStudentHandler = async (req: Request, res: Response) => 
   }
 };
 
-export const getExamsForTutorHandler = async (req: Request, res: Response) => {
+export const getExamsForTutorHandler = async (req: Request, res: Response, next: any) => {
   try {
-    const tutorId = (req as any).user.id;
+    const tutorId = req.user!.id;
     const exams = await getExamsForTutor(tutorId);
     res.json(exams);
   } catch (error) {
@@ -41,10 +47,10 @@ export const getExamsForTutorHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const submitExamHandler = async (req: Request, res: Response) => {
+export const submitExamHandler = async (req: Request, res: Response, next: any) => {
   try {
-    const { examId, answers } = req.body;
-    const studentId = (req as any).user.id;
+    const { examId, answers } = req.body as any;
+    const studentId = req.user!.id;
 
     const submission = await submitExam(parseInt(examId), studentId, answers);
     res.json(submission);
@@ -53,10 +59,10 @@ export const submitExamHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getExamResultsHandler = async (req: Request, res: Response) => {
+export const getExamResultsHandler = async (req: Request, res: Response, next: any) => {
   try {
     const examId = req.params.examId;
-    const tutorId = (req as any).user.id;
+    const tutorId = req.user!.id;
 
     const results = await getExamResults(parseInt(examId!), tutorId);
     res.json(results);
@@ -65,10 +71,10 @@ export const getExamResultsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getExamQuestionsHandler = async (req: Request, res: Response) => {
+export const getExamQuestionsHandler = async (req: Request, res: Response, next: any) => {
   try {
     const examId = parseInt(req.params.examId!);
-    const studentId = (req as any).user.id;
+    const studentId = req.user!.id;
 
     const questions = await getExamQuestions(examId, studentId);
     res.json(questions);
@@ -77,10 +83,10 @@ export const getExamQuestionsHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteExamHandler = async (req: Request, res: Response) => {
+export const deleteExamHandler = async (req: Request, res: Response, next: any) => {
   try {
     const examId = parseInt(req.params.examId!);
-    const tutorId = (req as any).user.id;
+    const tutorId = req.user!.id;
 
     const result = await deleteExam(examId, tutorId);
     res.json(result);

@@ -359,9 +359,133 @@ Este enfoque asegura que solo usuarios autenticados puedan enviar y recibir mens
 6. **Acceder al cliente**:
    Abrir navegador en `http://localhost:8000`
 
+## 🤖 Sistema de Chatbot con IA
+
+### Descripción General
+El sistema de chatbot con IA permite a los usuarios interactuar con un asistente inteligente especializado en búsqueda de información educativa. El chatbot utiliza Google Gemini AI para proporcionar respuestas contextuales, manteniendo memoria de conversación y permitiendo múltiples hilos de diálogo. Está diseñado exclusivamente para facilitar el aprendizaje autónomo mediante la búsqueda de información confiable en internet, rechazando cualquier solicitud relacionada con tareas escolares o actividades que involucren calificaciones.
+
+### Modelo de Datos (Prisma Schema)
+
+```prisma
+model ChatbotConversation {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation("UserChatbotConversations", fields: [userId], references: [id])
+  title       String?
+  messages    String   // JSON array de mensajes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
+
+### Servicio de Chatbot (chatbotService.ts)
+
+#### Funcionalidades Implementadas:
+- **Integración con Gemini AI**: Uso de Google Gemini 2.0 Flash para generar respuestas inteligentes.
+- **Memoria de Conversación**: Mantiene contexto de hasta los últimos 5 mensajes para respuestas coherentes.
+- **Detección de Cambio de Tema**: Resetea el contexto cuando detecta frases como "cambiando de tema" o "olvida lo anterior".
+- **Restricciones Éticas**: Rechaza solicitudes relacionadas con tareas escolares, exámenes o cualquier actividad académica calificada.
+- **Extracción de Enlaces**: Identifica y extrae enlaces reales de fuentes confiables en las respuestas.
+- **Generación de Títulos**: Crea títulos automáticos para conversaciones basados en el primer mensaje.
+
+#### Métodos Principales:
+- `processMessage()`: Procesa un mensaje del usuario y genera respuesta con IA, considerando historial y restricciones.
+- `shouldResetContext()`: Detecta frases que indican cambio de tema para resetear memoria.
+- `isRestrictedRequest()`: Verifica si el mensaje viola las reglas éticas del chatbot.
+- `extractLinks()`: Extrae enlaces de las respuestas generadas.
+- `generateConversationTitle()`: Crea títulos descriptivos para conversaciones.
+
+#### Restricciones Éticas:
+El chatbot está programado para rechazar cualquier solicitud que involucre:
+- Ayuda con tareas escolares o trabajos académicos
+- Preparación de exámenes o pruebas
+- Resolución de ejercicios calificados
+- Cualquier actividad que pueda afectar calificaciones
+
+En su lugar, dirige a los usuarios hacia el aprendizaje autónomo y búsqueda de información general.
+
+#### Mensajes de Rechazo (en español):
+- `"Lo siento, soy un chatbot educativo diseñado únicamente para ayudar con la búsqueda y explicación de información general. No puedo ayudar con tareas escolares, trabajos académicos, exámenes o cualquier actividad que involucre calificaciones."`
+
+### Controlador de Chatbot (chatbotController.ts)
+
+#### Endpoints CRUD:
+- `GET /chatbot/conversations`: Obtener todas las conversaciones del usuario
+- `GET /chatbot/conversations/:conversationId`: Obtener conversación específica
+- `POST /chatbot/conversations`: Crear nueva conversación
+- `POST /chatbot/conversations/:conversationId/messages`: Enviar mensaje al chatbot
+- `DELETE /chatbot/conversations/:conversationId`: Eliminar conversación
+
+#### Validaciones Implementadas:
+- Autenticación requerida para todas las rutas
+- Verificación de propiedad de conversaciones (solo el propietario puede acceder)
+- Validación de mensajes no vacíos
+- Control de existencia de conversaciones
+
+#### Respuestas de Error (en español):
+- `"No autenticado."`
+- `"ID de conversación requerido."`
+- `"ID de conversación inválido."`
+- `"Conversación no encontrada."`
+- `"Mensaje requerido."`
+- `"Error interno del servidor."`
+
+### Rutas de Chatbot (chatbotRoutes.ts)
+
+Todas las rutas requieren autenticación JWT (`verifyToken` middleware).
+
+```typescript
+router.get('/conversations', getChatbotConversations as any);
+router.get('/conversations/:conversationId', getChatbotConversation as any);
+router.post('/conversations', createChatbotConversation as any);
+router.post('/conversations/:conversationId/messages', sendChatbotMessage as any);
+router.delete('/conversations/:conversationId', deleteChatbotConversation as any);
+```
+
+### Integración con la Aplicación Principal (app.ts)
+
+Las rutas de chatbot están registradas en `/chatbot`:
+```typescript
+app.use('/chatbot', chatbotRoutes);
+```
+
+### Servicio de IA (aiService.ts - Integración)
+
+#### Funcionalidades de Generación de Respuestas:
+- **Prompts Estructurados**: Prompts del sistema en español con reglas claras de comportamiento.
+- **Formato de Respuesta**: Estructura organizada con títulos, explicaciones detalladas y enlaces.
+- **Validación de Contenido**: Aseguramiento de respuestas apropiadas y éticas.
+- **Manejo de Errores**: Fallback para casos donde la IA no está disponible.
+
+#### Estructura de Respuestas:
+Cada respuesta sigue un formato Markdown consistente:
+1. **Título Principal**: Claro y atractivo con emojis
+2. **Explicación Detallada**: Información organizada con listas y negritas
+3. **Fuentes y Enlaces**: Enlaces reales de fuentes confiables
+
+### Funcionamiento Automático
+
+- **Creación de Conversaciones**: Los usuarios pueden iniciar múltiples conversaciones independientes.
+- **Memoria Contextual**: Mantiene coherencia dentro de cada hilo de conversación.
+- **Reset de Contexto**: Detecta automáticamente cambios de tema y comienza nuevo contexto.
+- **Almacenamiento Seguro**: Todas las conversaciones se guardan en base de datos con JSON de mensajes.
+- **Títulos Automáticos**: Genera títulos descriptivos basados en el contenido inicial.
+
+### Consideraciones Técnicas
+
+- **IA Integration**: Uso de Google Gemini API con clave de API configurable.
+- **JSON Handling**: Parseo seguro de mensajes con try-catch para evitar corrupciones.
+- **Persistencia**: Conversaciones almacenadas en SQLite vía Prisma con actualizaciones automáticas.
+- **Seguridad**: Solo usuarios autenticados pueden acceder a sus conversaciones.
+- **Escalabilidad**: Patrón Singleton para el servicio, adecuado para cargas moderadas.
+- **Idioma**: Interfaz completamente en español para consistencia con la plataforma educativa.
+- **Ética**: Restricciones programadas para mantener el propósito educativo sin comprometer la integridad académica.
+
+Esta implementación proporciona un asistente de IA ético y educativo, complementando el ecosistema de aprendizaje con herramientas de búsqueda inteligente y contextual.
+
 ## Conclusión
 
-Este backend proporciona una solución completa para la gestión de proyectos educativos, implementando las mejores prácticas de desarrollo con TypeScript, arquitectura modular y seguridad robusta. El sistema permite una gestión eficiente de usuarios, proyectos y tareas, con comunicación en tiempo real a través del chat.
+Este backend proporciona una solución completa para la gestión de proyectos educativos, implementando las mejores prácticas de desarrollo con TypeScript, arquitectura modular y seguridad robusta. El sistema permite una gestión eficiente de usuarios, proyectos y tareas, con comunicación en tiempo real a través del chat y un chatbot educativo con IA.
 
 El cliente HTML provisional facilita las pruebas funcionales, pero se recomienda desarrollar un frontend más avanzado con frameworks modernos como React o Vue.js para una mejor experiencia de usuario.
 

@@ -1,16 +1,9 @@
-import { RequestHandler, Request } from 'express';
+import { RequestHandler } from 'express';
+import { AuthUser } from '../types/auth';
 import prisma from '../config/database';
 
-interface CustomRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
-
 // Get all public chat messages with user info
-export const getChatMessages: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getChatMessages: RequestHandler = async (req, res, next) => {
   const messages = await prisma.chatMessage.findMany({
     where: {
       isPrivate: false,
@@ -31,7 +24,7 @@ export const getChatMessages: RequestHandler = async (req: CustomRequest, res, n
 };
 
 // Get private messages between current user and another user
-export const getPrivateMessages: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getPrivateMessages: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
@@ -41,7 +34,8 @@ export const getPrivateMessages: RequestHandler = async (req: CustomRequest, res
     return res.status(400).json({ message: 'ID de usuario requerido.' });
   }
 
-  const currentUserId = req.user.id;
+  const user = req.user as AuthUser;
+  const currentUserId = user.id;
   const parsedOtherUserId = parseInt(otherUserId);
 
   if (isNaN(parsedOtherUserId)) {
@@ -85,7 +79,7 @@ export const getPrivateMessages: RequestHandler = async (req: CustomRequest, res
 };
 
 // Create a new chat message
-export const createChatMessage: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createChatMessage: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
@@ -93,9 +87,10 @@ export const createChatMessage: RequestHandler = async (req: CustomRequest, res,
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ message: 'Mensaje inválido.' });
   }
+  const user = req.user as AuthUser;
   const newMessage = await prisma.chatMessage.create({
     data: {
-      userId: req.user.id,
+      userId: user.id,
       message,
     },
     include: {
@@ -112,7 +107,7 @@ export const createChatMessage: RequestHandler = async (req: CustomRequest, res,
 };
 
 // Create a new private message
-export const createPrivateMessage: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createPrivateMessage: RequestHandler = async (req, res, next) => {
   if (!req.user) {
     return res.status(403).json({ message: 'No autenticado.' });
   }
@@ -136,9 +131,10 @@ export const createPrivateMessage: RequestHandler = async (req: CustomRequest, r
     return res.status(404).json({ message: 'Destinatario no encontrado.' });
   }
 
+  const user = req.user as AuthUser;
   const newMessage = await prisma.chatMessage.create({
     data: {
-      userId: req.user.id,
+      userId: user.id,
       message,
       recipientId,
       isPrivate: true,

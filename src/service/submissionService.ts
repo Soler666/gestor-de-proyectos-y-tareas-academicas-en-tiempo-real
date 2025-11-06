@@ -211,12 +211,13 @@ export class SubmissionService {
       throw new Error('Entrega no encontrada');
     }
 
-    // Verificar permisos
-    if (userRole === 'Alumno' && submission.studentId !== userId) {
+    // Verificar permisos (normalizar role para soportar variantes)
+    const normalizedRole = (userRole || '').toUpperCase();
+    if (normalizedRole === 'ALUMNO' && submission.studentId !== userId) {
       throw new Error('No tienes permiso para ver esta entrega');
     }
 
-    if (userRole === 'Tutor' && submission.task.tutorId !== userId) {
+    if (normalizedRole === 'TUTOR' && submission.task.tutorId !== userId) {
       throw new Error('No tienes permiso para ver esta entrega');
     }
 

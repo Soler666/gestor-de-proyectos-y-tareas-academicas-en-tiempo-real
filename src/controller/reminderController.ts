@@ -1,22 +1,16 @@
-import { RequestHandler, Request } from 'express';
+import { RequestHandler } from 'express';
 import { ReminderService } from '../service/reminderService';
-
-interface CustomRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
+import { AuthUser } from '../types/auth';
 
 const reminderService = ReminderService.getInstance();
 
-export const createReminder: RequestHandler = async (req: CustomRequest, res, next) => {
+export const createReminder: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
+    const user = req.user as AuthUser;
     const { title, description, scheduledAt, relatedId, relatedType } = req.body;
 
     if (!title || !scheduledAt) {
@@ -29,7 +23,7 @@ export const createReminder: RequestHandler = async (req: CustomRequest, res, ne
     }
 
     const reminder = await reminderService.createReminder({
-      userId: req.user.id,
+      userId: user.id,
       title,
       description,
       scheduledAt: scheduledDate,
@@ -43,20 +37,21 @@ export const createReminder: RequestHandler = async (req: CustomRequest, res, ne
   }
 };
 
-export const getUserReminders: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getUserReminders: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
     }
 
-    const reminders = await reminderService.getRemindersByUser(req.user.id);
+    const user = req.user as AuthUser;
+    const reminders = await reminderService.getRemindersByUser(user.id);
     res.json(reminders);
   } catch (error) {
     next(error);
   }
 };
 
-export const getReminderById: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getReminderById: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -69,7 +64,8 @@ export const getReminderById: RequestHandler = async (req: CustomRequest, res, n
       return res.status(404).json({ message: 'Recordatorio no encontrado.' });
     }
 
-    if (reminder.userId !== req.user.id) {
+    const user = req.user as AuthUser;
+    if (reminder.userId !== user.id) {
       return res.status(403).json({ message: 'No tienes permiso para ver este recordatorio.' });
     }
 
@@ -79,7 +75,7 @@ export const getReminderById: RequestHandler = async (req: CustomRequest, res, n
   }
 };
 
-export const updateReminder: RequestHandler = async (req: CustomRequest, res, next) => {
+export const updateReminder: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -93,9 +89,12 @@ export const updateReminder: RequestHandler = async (req: CustomRequest, res, ne
       return res.status(404).json({ message: 'Recordatorio no encontrado.' });
     }
 
-    if (existingReminder.userId !== req.user.id) {
+    const user = req.user as AuthUser;
+    if (existingReminder.userId !== user.id) {
       return res.status(403).json({ message: 'No tienes permiso para editar este recordatorio.' });
     }
+
+
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
@@ -118,7 +117,7 @@ export const updateReminder: RequestHandler = async (req: CustomRequest, res, ne
   }
 };
 
-export const deleteReminder: RequestHandler = async (req: CustomRequest, res, next) => {
+export const deleteReminder: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -131,7 +130,8 @@ export const deleteReminder: RequestHandler = async (req: CustomRequest, res, ne
       return res.status(404).json({ message: 'Recordatorio no encontrado.' });
     }
 
-    if (reminder.userId !== req.user.id) {
+    const user = req.user as AuthUser;
+    if (reminder.userId !== user.id) {
       return res.status(403).json({ message: 'No tienes permiso para eliminar este recordatorio.' });
     }
 
@@ -143,7 +143,7 @@ export const deleteReminder: RequestHandler = async (req: CustomRequest, res, ne
 };
 
 // Legacy endpoints for backward compatibility
-export const scheduleReminder: RequestHandler = async (req: CustomRequest, res, next) => {
+export const scheduleReminder: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -155,13 +155,17 @@ export const scheduleReminder: RequestHandler = async (req: CustomRequest, res, 
       return res.status(400).json({ message: 'Mensaje y fecha programada son requeridos.' });
     }
 
+    // Note: This legacy endpoint does not persist the reminder to the database.
+    // It only schedules a cron job. For persistent reminders, use the /reminders POST endpoint.
+
     const scheduledDate = new Date(scheduledAt);
     if (scheduledDate <= new Date()) {
       return res.status(400).json({ message: 'La fecha debe ser futura.' });
     }
 
+    const user = req.user as AuthUser;
     const jobId = await reminderService.scheduleCustomReminder(
-      req.user.id,
+      user.id,
       message,
       scheduledDate,
       relatedId,
@@ -178,7 +182,7 @@ export const scheduleReminder: RequestHandler = async (req: CustomRequest, res, 
   }
 };
 
-export const cancelReminder: RequestHandler = async (req: CustomRequest, res, next) => {
+export const cancelReminder: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -198,7 +202,7 @@ export const cancelReminder: RequestHandler = async (req: CustomRequest, res, ne
   }
 };
 
-export const getReminderStatus: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getReminderStatus: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });

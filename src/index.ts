@@ -1,5 +1,6 @@
 
 import { app, port } from './app';
+import { config } from './config/config';
 import errorHanddler from './middleware/errorHanddler';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -14,11 +15,18 @@ import { initializeNotificationScheduler } from './service/notificationScheduler
 type UserData = JwtPayload & { username: string };
 
 const httpServer = createServer(app);
+// Configuración de Socket.IO con opciones mejoradas
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
+    methods: ['GET', 'POST']
   },
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutos
+  },
+  pingTimeout: 20000,
+  pingInterval: 25000
 });
 setIO(io);
 
@@ -203,8 +211,20 @@ const reminderService = ReminderService.getInstance();
 initializeNotificationScheduler();
 
 app.use(errorHanddler);
+import { setupGlobalErrorHandlers } from './util/errorHandler';
+
+// Configurar manejadores de errores globales
+setupGlobalErrorHandlers(io);
+
+// Iniciar el servidor
 httpServer.listen(port, () => {
-  console.log('Servidor corriendo en http://localhost:' + port);
-  console.log('Socket.io habilitado en el mismo puerto');
-  console.log('Sistema de recordatorios automáticos activado');
+  console.log('✅ Servidor corriendo en http://localhost:' + port);
+  console.log('✅ Socket.io habilitado en el mismo puerto');
+  console.log('✅ Sistema de recordatorios automáticos activado');
+  
+  if (config.NODE_ENV === 'production') {
+    console.log('🚀 Servidor ejecutándose en modo producción');
+  } else {
+    console.log('🔧 Servidor ejecutándose en modo desarrollo');
+  }
 });

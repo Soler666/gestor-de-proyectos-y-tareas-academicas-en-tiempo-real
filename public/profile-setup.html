@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Perfil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .setup-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <h1>Completar Perfil</h1>
+        <img id="profile-pic" class="profile-pic" src="" alt="Foto de perfil">
+        
+        <form id="profile-form">
+            <div class="form-group">
+                <label for="fullName">Nombre Completo:</label>
+                <input type="text" id="fullName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Rol:</label>
+                <select id="role" required>
+                    <option value="">Selecciona un rol</option>
+                        <option value="TUTOR">Tutor</option>
+                        <option value="ALUMNO">Alumno</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="student-fields" style="display: none;">
+                <label for="studentId">Matrícula/ID de Estudiante:</label>
+                <input type="text" id="studentId">
+            </div>
+
+            <div class="form-group" id="tutor-fields" style="display: none;">
+                <label for="specialization">Área de Especialización:</label>
+                <input type="text" id="specialization">
+            </div>
+
+            <button type="submit">Guardar Perfil</button>
+        </form>
+    </div>
+
+    <script>
+        // Obtener datos del usuario autenticado desde /auth/me
+    const googleData = {};
+        (async function loadUser() {
+            try {
+                const resp = await fetch('/auth/me', { credentials: 'include' });
+                if (!resp.ok) return; // no rellenar si error
+                const json = await resp.json();
+                const user = json.user;
+                googleData.email = user.email || user.username;
+                googleData.picture = user.picture || '';
+                googleData.name = ((user.firstName || '') + ' ' + (user.lastName || '')).trim();
+
+                if (googleData.picture) {
+                    document.getElementById('profile-pic').src = googleData.picture;
+                }
+                if (googleData.name) {
+                    document.getElementById('fullName').value = googleData.name;
+                }
+            } catch (err) {
+                console.warn('No se pudieron obtener datos del usuario:', err);
+            }
+        })();
+
+        // Mostrar/ocultar campos según el rol seleccionado
+        document.getElementById('role').addEventListener('change', function(e) {
+            const studentFields = document.getElementById('student-fields');
+            const tutorFields = document.getElementById('tutor-fields');
+            
+            if (e.target.value === 'ALUMNO') {
+                studentFields.style.display = 'block';
+                tutorFields.style.display = 'none';
+            } else if (e.target.value === 'TUTOR') {
+                studentFields.style.display = 'none';
+                tutorFields.style.display = 'block';
+            } else {
+                studentFields.style.display = 'none';
+                tutorFields.style.display = 'none';
+            }
+        });
+
+        // Manejar envío del formulario
+        document.getElementById('profile-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                role: document.getElementById('role').value,
+                email: googleData.email,
+                picture: googleData.picture
+            };
+
+            if (formData.role === 'ALUMNO') {
+                formData.studentId = document.getElementById('studentId').value;
+            } else if (formData.role === 'TUTOR') {
+                formData.specialization = document.getElementById('specialization').value;
+            }
+
+            try {
+                const response = await fetch('/profile/complete-profile', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al guardar el perfil');
+                }
+
+                const data = await response.json();
+                
+                // Redirigir a la página principal con el token actualizado
+                window.location.href = `/client.html?token=${data.token}`;
+            } catch (error) {
+                alert('Error al guardar el perfil: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

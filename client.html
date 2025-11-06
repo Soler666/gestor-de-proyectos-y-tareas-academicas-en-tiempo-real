@@ -12,6 +12,7 @@
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
+            position: relative;
         }
         .container {
             display: flex;
@@ -146,6 +147,50 @@
         }
         .nav button {
             margin: 0 10px;
+        }
+        .admin-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        .admin-users-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .admin-user-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-user-info {
+            flex: 1;
+        }
+        .admin-user-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .admin-user-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .pending-users {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        .approved-users {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .rejected-users {
+            background: #f8d7da;
+            border-color: #f5c6cb;
         }
         .exam-section, .exams-section {
             background: white;
@@ -369,6 +414,66 @@
             margin-right: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
+        }
+        .google-login-btn {
+            background: #ffffff;
+            color: #757575;
+            border: 1px solid #dadce0;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .google-login-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+        }
+        .google-login-btn:active {
+            background: #f1f3f4;
+        }
+        .google-login-btn img {
+            width: 18px;
+            height: 18px;
+        }
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            width: 100%;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #dadce0;
+            z-index: 0;
+        }
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #5f6368;
+            position: relative;
+            z-index: 1;
+            font-size: 12px;
+            text-transform: uppercase;
         }
         .submissions-section {
             background: white;
@@ -734,6 +839,15 @@
                 <input type="password" id="password" placeholder="Contraseña">
                 <button id="login">Iniciar Sesión</button>
 
+                <div class="divider">
+                    <span>O</span>
+                </div>
+
+                <button id="google-login" class="google-login-btn" onclick="window.location.href='http://localhost:8000/auth/google'">
+                    <img src="https://www.google.com/favicon.ico" alt="Google Logo">
+                    Iniciar sesión con Google
+                </button>
+
                 <label for="token">Token JWT:</label>
                 <input type="text" id="token" placeholder="Ingresa tu token JWT">
                 <button id="connect">Conectar Socket</button>
@@ -744,12 +858,27 @@
                 <input type="text" id="reg-username" placeholder="Usuario">
                 <label for="reg-password">Contraseña:</label>
                 <input type="password" id="reg-password" placeholder="Contraseña">
+                <label for="reg-email">Email:</label>
+                <input type="email" id="reg-email" placeholder="email@ejemplo.com">
+                <label for="reg-firstname">Nombre:</label>
+                <input type="text" id="reg-firstname" placeholder="Tu nombre">
+                <label for="reg-lastname">Apellido:</label>
+                <input type="text" id="reg-lastname" placeholder="Tu apellido">
                 <label for="reg-role">Rol:</label>
                 <select id="reg-role">
-                    <option value="Alumno">Alumno</option>
-                    <option value="Tutor">Tutor</option>
+                    <option value="ALUMNO">Alumno</option>
+                    <option value="TUTOR">Tutor</option>
                 </select>
                 <button id="register">Registrarse</button>
+
+                <div class="divider">
+                    <span>O</span>
+                </div>
+
+                <button id="google-register" class="google-login-btn" onclick="window.location.href='http://localhost:8000/auth/google'">
+                    <img src="https://www.google.com/favicon.ico" alt="Google Logo">
+                    Registrarse con Google
+                </button>
             </div>
         </div>
     </div>
@@ -766,14 +895,21 @@
             <ul id="notification-list"></ul>
         </div>
 
-        <div class="nav">
-            <button id="show-chat">Chat Público</button>
-            <button id="show-tasks">Tareas</button>
-            <button id="show-projects">Proyectos</button>
-            <button id="show-reports">Reportes</button>
-            <button id="show-reminders">Recordatorios</button>
+        <div id="user-info-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div id="user-info" style="font-weight: bold; color: #007bff; font-size: 16px;">
+                Bienvenido: <span id="user-name"></span> (<span id="user-role"></span>)
+            </div>
+            <div id="nav-section" class="nav">
+                <button id="show-chat">Chat Público</button>
+                <button id="show-tasks">Tareas</button>
+                <button id="show-projects">Proyectos</button>
+                <button id="show-reports">Reportes</button>
+                <button id="show-reminders">Recordatorios</button>
             <button id="show-exams">Exámenes</button>
+            <button id="show-chatbot">Chatbot Educativo</button>
+            <button id="show-admin" style="display: none;">Administrar Usuarios</button>
             <button id="logout">Cerrar Sesión</button>
+            </div>
         </div>
 
         <div id="chat-view" class="view">
@@ -1015,6 +1151,48 @@
         </div>
     </div>
 </div>
+
+    <div id="chatbot-view" class="view" style="display: none;">
+        <div class="container" style="display: flex; gap: 20px;">
+            <!-- Conversations Sidebar -->
+            <div class="chatbot-sidebar" style="flex: 0 0 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Conversaciones</h3>
+                    <button id="new-conversation-btn" style="padding: 8px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Nueva</button>
+                </div>
+                <div id="conversations-list" style="max-height: 500px; overflow-y: auto;">
+                    <!-- Conversations will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="chatbot-section" style="flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+                <div id="chatbot-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <h2 style="margin: 0;">Chatbot Educativo</h2>
+                    <div id="conversation-actions" style="display: none;">
+                        <button id="delete-conversation-btn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Eliminar</button>
+                    </div>
+                </div>
+                <div id="chatbot-messages" class="chat-messages" style="flex: 1; overflow-y: auto; margin-bottom: 20px;"></div>
+                <div class="chat-input" id="chatbot-input-area" style="display: none;">
+                    <input type="text" id="chatbot-message" placeholder="Pregunta algo sobre tus estudios..." style="flex: 1;">
+                    <button id="send-chatbot" style="margin-left: 10px;">Enviar</button>
+                </div>
+                <div id="select-conversation-prompt" style="text-align: center; color: #666; padding: 40px;">
+                    Selecciona una conversación para comenzar a chatear
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-view" class="view" style="display: none;">
+        <div class="container">
+            <div class="admin-section">
+                <h2>Administrar Usuarios</h2>
+                <div id="admin-users" class="admin-users-list"></div>
+            </div>
+        </div>
+    </div>
 
 <!-- Modal para tomar examen -->
 <div id="exam-modal" class="exam-taking" style="display: none;">
@@ -1587,22 +1765,34 @@
             //     filteredTasks = tasks.filter(task => task.responsibleId === currentUser.id);
             // }
             if (filteredTasks.length === 0) {
-                tasksDiv.innerHTML = currentRole === 'Tutor' ? '<p>No se han creado tareas.</p>' : '<p>No tienes tareas asignadas aún.</p>';
+                tasksDiv.innerHTML = currentRole === 'TUTOR' ? '<p>No se han creado tareas.</p>' : '<p>No tienes tareas asignadas aún.</p>';
                 return;
             }
             filteredTasks.forEach(task => {
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task-item';
+
+                // Determinar cómo mostrar el alumno asignado
+                let assignedStudentText = '';
+                if (currentRole === 'TUTOR' && task.responsibles) {
+                    // Para tutores: mostrar lista de alumnos asignados
+                    const responsiblesList = task.responsibles.map(r => r.username).join(', ');
+                    assignedStudentText = responsiblesList || 'N/A';
+                } else {
+                    // Para alumnos: mostrar el alumno asignado individual
+                    assignedStudentText = task.responsible?.username || 'N/A';
+                }
+
                 taskDiv.innerHTML = `
                     <h4>${task.name} (${task.type === 'daily' ? 'Diaria' : 'Proyecto'})</h4>
                     <p>${task.description || ''}</p>
                     <p>Tutor: ${task.tutor?.username || 'Tutor no asignado'}</p>
-                    <p>Alumno asignado: ${task.responsible?.username || 'N/A'}</p>
+                    <p>Alumno asignado: ${assignedStudentText}</p>
                     <p>Estado: ${task.status}</p>
                     <p>Prioridad: ${task.priority}</p>
             ${task.dueDate ? `<p>Fecha límite: ${new Date(task.dueDate).toLocaleDateString()} - Cuenta regresiva: ${calculateCountdown(task.dueDate)}</p>` : ''}
-            ${currentRole === 'Tutor' ? `<button onclick="editTask(${task.id})">Editar</button> <button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
-            ${currentRole === 'Alumno' && task.responsibleId === currentUser.id ? `<button class="task-submit-btn" onclick="openSubmissionModal('task', ${task.id})">Realizar Entrega</button>` : ''}
+            ${currentRole === 'TUTOR' ? `<button onclick="editTask(${task.id})">Editar</button> <button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
+            ${currentRole === 'ALUMNO' && task.responsibleId === currentUser.id ? `<button class="task-submit-btn" onclick="openSubmissionModal('task', ${task.id})">Realizar Entrega</button>` : ''}
                 `;
                 tasksDiv.appendChild(taskDiv);
             });
@@ -1614,7 +1804,7 @@
             let filteredProjects = projects;
             // La lógica de filtrado ya se hace en el backend
             if (filteredProjects.length === 0) {
-                projectsDiv.innerHTML = currentRole === 'Alumno' ? '<p>No tienes proyectos asignados aún.</p>' : '<p>No hay proyectos disponibles.</p>';
+                projectsDiv.innerHTML = currentRole === 'ALUMNO' ? '<p>No tienes proyectos asignados aún.</p>' : '<p>No hay proyectos disponibles.</p>';
                 return;
             }
             filteredProjects.forEach(project => {
@@ -1633,7 +1823,7 @@
                     ${project.startDate ? `<p>Inicio: ${new Date(project.startDate).toLocaleString()}</p>` : ''}
                     ${project.endDate ? `<p>Fin: ${new Date(project.endDate).toLocaleString()}</p>` : ''}
                     ${project.endDate ? `<p>Cuenta regresiva: ${calculateCountdown(project.endDate)}</p>` : ''}
-                    ${currentRole === 'Tutor' ? `<button onclick="editProject(${project.id})">Editar</button> <button onclick="deleteProject(${project.id})">Eliminar</button>` : ''}
+                    ${currentRole === 'TUTOR' ? `<button onclick="editProject(${project.id})">Editar</button> <button onclick="deleteProject(${project.id})">Eliminar</button>` : ''}
                 `;
                 projectsDiv.appendChild(projectDiv);
             });
@@ -1653,6 +1843,57 @@
             }
         }
 
+        // Función para manejar la autenticación exitosa
+        async function handleSuccessfulAuth(token, user) {
+            tokenInput.value = token;
+            tokenInput.removeAttribute('readonly');
+            currentUser = user;
+            currentRole = user.role;
+            messagesDiv.innerHTML += '<p class="message status">Login exitoso, token obtenido</p>';
+
+            // Actualizar información del usuario en la UI
+            document.getElementById('user-name').textContent = user.username;
+            document.getElementById('user-role').textContent = user.role;
+
+            // Conectar socket automáticamente
+            if (socket.connected) {
+                socket.disconnect();
+            }
+            socket.auth = { token };
+            socket.connect();
+
+            // Mostrar/ocultar botones según rol
+            console.log('Rol actual:', currentRole);
+            document.getElementById('new-task-btn').style.display = currentRole === 'TUTOR' ? 'block' : 'none';
+            document.getElementById('new-project-btn').style.display = currentRole === 'TUTOR' ? 'block' : 'none';
+            document.getElementById('new-exam-btn').style.display = currentRole === 'TUTOR' ? 'block' : 'none';
+
+            // Cargar datos iniciales
+            await refreshData();
+
+            // Ocultar login y mostrar app principal
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+
+            // Mostrar vista de chat y cargar mensajes
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('chat-view').style.display = 'block';
+            await loadChatMessages();
+            await loadNotifications();
+        }
+
+        // Verificar si hay un token en la URL (para autenticación de Google)
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            if (token) {
+                // Limpiar la URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                const user = decodeJWT(token);
+                handleSuccessfulAuth(token, user);
+            }
+        };
+
         loginBtn.addEventListener('click', async () => {
             const username = usernameInput.value;
             const password = passwordInput.value;
@@ -1667,12 +1908,8 @@
                     role: document.getElementById('role') ? document.getElementById('role').value : undefined
                 });
                 const token = response.headers['token'] || response.data.token || response.headers.token;
-                tokenInput.value = token;
-                tokenInput.removeAttribute('readonly');
-                const payload = decodeJWT(token);
-                currentUser = payload;
-                currentRole = payload.role;
-                messagesDiv.innerHTML += '<p class="message status">Login exitoso, token obtenido</p>';
+                const user = decodeJWT(token);
+                await handleSuccessfulAuth(token, user);
 
                 // Conectar socket automáticamente
                 if (socket.connected) {
@@ -1682,9 +1919,9 @@
                 socket.connect();
 
                 // Mostrar/ocultar botones según rol
-                document.getElementById('new-task-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
-                document.getElementById('new-project-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
-                document.getElementById('new-exam-btn').style.display = currentRole === 'Tutor' ? 'block' : 'none';
+                document.getElementById('new-task-btn').style.display = currentRole === 'TUTOR' ? 'block' : 'none';
+                document.getElementById('new-project-btn').style.display = currentRole === 'TUTOR' ? 'block' : 'none';
+                document.getElementById('new-exam-btn').style.display = currentRole === 'TUTOR' ? 'block' : 'none';
 
                 // Asegurarse que las vistas de listas son visibles y los formularios de creación ocultos
                 document.getElementById('tasks').style.display = 'block';
@@ -1711,21 +1948,30 @@
         registerBtn.addEventListener('click', async () => {
             const username = document.getElementById('reg-username').value;
             const password = document.getElementById('reg-password').value;
+            const email = document.getElementById('reg-email').value;
+            const firstName = document.getElementById('reg-firstname').value;
+            const lastName = document.getElementById('reg-lastname').value;
             const role = document.getElementById('reg-role').value;
-            if (!username || !password || !role) {
-                alert('Ingresa usuario, contraseña y rol');
+            if (!username || !password || !email || !firstName || !lastName || !role) {
+                alert('Ingresa todos los campos requeridos');
                 return;
             }
             try {
                 const response = await axios.post('http://localhost:8000/auth/register', {
                     username,
                     password,
+                    email,
+                    firstName,
+                    lastName,
                     role
                 });
                 alert('Registro exitoso. Ahora puedes iniciar sesión.');
                 // Clear form
                 document.getElementById('reg-username').value = '';
                 document.getElementById('reg-password').value = '';
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-firstname').value = '';
+                document.getElementById('reg-lastname').value = '';
                 document.getElementById('reg-role').value = 'Alumno';
             } catch (error) {
                 alert('Error en registro: ' + (error.response?.data?.message || error.message));
@@ -1832,12 +2078,37 @@
 
                 if (editingTaskId) {
                     // Update existing task
-                    await axios.put(`http://localhost:8000/tasks/${editingTaskId}`, taskData, { headers: getAuthHeaders() });
+                    const res = await axios.put(`http://localhost:8000/tasks/${editingTaskId}`, taskData, { headers: getAuthHeaders() });
                     alert('Tarea actualizada exitosamente');
+                    // Check for optional calendar warning from server
+                    if (res?.data?.calendarWarning) {
+                        const msg = res.data.calendarWarning;
+                        const code = res.data.calendarWarningCode;
+                        // If insufficient permissions, offer immediate re-consent
+                        if (code === 'INSUFFICIENT_PERMISSIONS') {
+                            if (confirm(msg + '\n\n¿Pedir re-consentimiento ahora?')) {
+                                window.location.href = 'http://localhost:8000/auth/google';
+                            }
+                        } else {
+                            alert(msg);
+                        }
+                    }
                 } else {
                     // Create new task
-                    await axios.post('http://localhost:8000/tasks', taskData, { headers: getAuthHeaders() });
+                    const res = await axios.post('http://localhost:8000/tasks', taskData, { headers: getAuthHeaders() });
                     alert('Tarea creada exitosamente');
+                    // If server returned calendar warning, surface it and offer re-consent when needed
+                    if (res?.data?.calendarWarning) {
+                        const msg = res.data.calendarWarning;
+                        const code = res.data.calendarWarningCode;
+                        if (code === 'INSUFFICIENT_PERMISSIONS') {
+                            if (confirm(msg + '\n\n¿Pedir re-consentimiento ahora?')) {
+                                window.location.href = 'http://localhost:8000/auth/google';
+                            }
+                        } else {
+                            alert(msg);
+                        }
+                    }
                 }
 
                 // Reset form and hide
@@ -1988,10 +2259,10 @@
         async function loadExams() {
             try {
                 let response;
-                if (currentRole === 'Tutor') {
-                    response = await axios.get('http://localhost:8000/exams/tutor', { headers: getAuthHeaders() });
-                } else {
-                    response = await axios.get('http://localhost:8000/exams/student', { headers: getAuthHeaders() });
+                if (currentRole === 'TUTOR') {
+                        response = await axios.get('http://localhost:8000/exams/tutor', { headers: getAuthHeaders() });
+                    } else {
+                        response = await axios.get('http://localhost:8000/exams/student', { headers: getAuthHeaders() });
                 }
                 const exams = response.data;
                 renderExams(exams);
@@ -2010,7 +2281,7 @@
             const examsDiv = document.getElementById('exams');
             examsDiv.innerHTML = '';
             if (!exams || exams.length === 0) {
-                examsDiv.innerHTML = currentRole === 'Tutor' ? '<p>No has creado exámenes aún.</p>' : '<p>No tienes exámenes asignados aún.</p>';
+                examsDiv.innerHTML = currentRole === 'TUTOR' ? '<p>No has creado exámenes aún.</p>' : '<p>No tienes exámenes asignados aún.</p>';
                 return;
             }
 
@@ -2020,7 +2291,7 @@
                 const assignedUsers = exam.assignedUsers && exam.assignedUsers.length > 0 ? exam.assignedUsers.map(u => u.username).join(', ') : 'Ninguno';
                 const topics = exam.topics ? JSON.parse(exam.topics).join(', ') : '';
 
-                if (currentRole === 'Tutor') {
+                if (currentRole === 'TUTOR') {
                     examDiv.innerHTML = `
                         <h4>${exam.title}</h4>
                         <p>Temas: ${topics}</p>
@@ -2600,6 +2871,284 @@
         let currentSubmissionType = null;
         let currentSubmissionId = null;
         let selectedFiles = [];
+
+        // Chatbot variables
+        let currentConversationId = null;
+        let chatbotConversations = [];
+
+        // Load chatbot conversations
+        async function loadConversations() {
+            try {
+                const response = await axios.get('http://localhost:8000/chatbot/conversations', { headers: getAuthHeaders() });
+                chatbotConversations = response.data;
+                renderConversations();
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado. Por favor, inicia sesión de nuevo.');
+                    logout();
+                } else {
+                    alert('Error cargando conversaciones: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        }
+
+        // Render conversations list
+        function renderConversations() {
+            const conversationsList = document.getElementById('conversations-list');
+            conversationsList.innerHTML = '';
+
+            if (!chatbotConversations || chatbotConversations.length === 0) {
+                conversationsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No tienes conversaciones aún.<br>Crea una nueva para comenzar.</p>';
+                return;
+            }
+
+            chatbotConversations.forEach(conversation => {
+                const conversationDiv = document.createElement('div');
+                conversationDiv.className = 'conversation-item';
+                conversationDiv.style.cssText = `
+                    padding: 10px;
+                    margin: 5px 0;
+                    border: 1px solid #ddd;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    background: ${conversation.id === currentConversationId ? '#e3f2fd' : '#f9f9f9'};
+                `;
+                conversationDiv.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px;">${conversation.title}</div>
+                    <div style="font-size: 12px; color: #666;">${new Date(conversation.updatedAt).toLocaleString()}</div>
+                    <div style="font-size: 12px; color: #666;">${conversation.messages ? conversation.messages.length : 0} mensajes</div>
+                `;
+                conversationDiv.addEventListener('click', () => selectConversation(conversation.id));
+                conversationsList.appendChild(conversationDiv);
+            });
+        }
+
+        // Create new conversation
+        async function createNewConversation() {
+            try {
+                const response = await axios.post('http://localhost:8000/chatbot/conversations', {}, { headers: getAuthHeaders() });
+                const newConversation = response.data;
+                chatbotConversations.unshift(newConversation);
+                selectConversation(newConversation.id);
+                renderConversations();
+            } catch (error) {
+                console.error('Error creating conversation:', error);
+                alert('Error creando conversación: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        // Select conversation
+        async function selectConversation(conversationId) {
+            currentConversationId = conversationId;
+            renderConversations();
+
+            try {
+                const response = await axios.get(`http://localhost:8000/chatbot/conversations/${conversationId}`, { headers: getAuthHeaders() });
+                const conversation = response.data;
+                renderMessages(conversation.messages);
+
+                // Show chat input and actions
+                document.getElementById('chatbot-input-area').style.display = 'flex';
+                document.getElementById('conversation-actions').style.display = 'block';
+                document.getElementById('select-conversation-prompt').style.display = 'none';
+
+                // Update header
+                document.getElementById('chatbot-header').querySelector('h2').textContent = conversation.title;
+            } catch (error) {
+                console.error('Error loading conversation:', error);
+                alert('Error cargando conversación: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        // Render messages
+        function renderMessages(messages) {
+            const messagesDiv = document.getElementById('chatbot-messages');
+            messagesDiv.innerHTML = '';
+
+            if (!messages || messages.length === 0) {
+                messagesDiv.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No hay mensajes en esta conversación.<br>¡Envía el primero!</p>';
+                return;
+            }
+
+            messages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.style.cssText = `
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    border-radius: 8px;
+                    max-width: 70%;
+                    ${message.role === 'user' ? 'margin-left: auto; background: #007bff; color: white;' : 'margin-right: auto; background: #f1f1f1; color: #333;'}
+                `;
+
+                let messageContent = message.content;
+
+                // Add links if present
+                if (message.links && message.links.length > 0) {
+                    messageContent += '<br><br><strong>Enlaces útiles:</strong><br>';
+                    message.links.forEach(link => {
+                        messageContent += `<a href="${link}" target="_blank" style="color: ${message.role === 'user' ? '#cce5ff' : '#007bff'}; text-decoration: underline;">${link}</a><br>`;
+                    });
+                }
+
+                messageDiv.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px;">${message.role === 'user' ? 'Tú' : 'Chatbot Educativo'}</div>
+                    <div>${messageContent}</div>
+                    <div style="font-size: 11px; opacity: 0.7; margin-top: 5px;">${new Date(message.timestamp).toLocaleString()}</div>
+                `;
+
+                messagesDiv.appendChild(messageDiv);
+            });
+
+            // Scroll to bottom
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Send chatbot message
+        async function sendChatbotMessage() {
+            const messageInput = document.getElementById('chatbot-message');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            // If no conversation is selected, create a new one automatically
+            if (!currentConversationId) {
+                await createNewConversation();
+            }
+
+            // Clear input
+            messageInput.value = '';
+
+            // Add user message to UI immediately
+            const messagesDiv = document.getElementById('chatbot-messages');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message';
+            userMessageDiv.style.cssText = 'margin-bottom: 10px; padding: 10px; border-radius: 8px; max-width: 70%; margin-left: auto; background: #007bff; color: white;';
+            userMessageDiv.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">Tú</div>
+                <div>${message}</div>
+                <div style="font-size: 11px; opacity: 0.7; margin-top: 5px;">${new Date().toLocaleString()}</div>
+            `;
+            messagesDiv.appendChild(userMessageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const response = await axios.post(`http://localhost:8000/chatbot/conversations/${currentConversationId}/messages`,
+                    { message },
+                    { headers: getAuthHeaders() }
+                );
+
+                const botResponse = response.data;
+
+                // Add bot response to UI
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message';
+                botMessageDiv.style.cssText = 'margin-bottom: 10px; padding: 10px; border-radius: 8px; max-width: 70%; margin-right: auto; background: #f1f1f1; color: #333;';
+
+                let botMessageContent = botResponse.assistantMessage.content;
+
+                // Add links if present
+                if (botResponse.assistantMessage.links && botResponse.assistantMessage.links.length > 0) {
+                    botMessageContent += '<br><br><strong>Enlaces útiles:</strong><br>';
+                    botResponse.assistantMessage.links.forEach(link => {
+                        botMessageContent += `<a href="${link}" target="_blank" style="color: #007bff; text-decoration: underline;">${link}</a><br>`;
+                    });
+                }
+
+                botMessageDiv.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px;">Chatbot Educativo</div>
+                    <div>${botMessageContent}</div>
+                    <div style="font-size: 11px; opacity: 0.7; margin-top: 5px;">${new Date().toLocaleString()}</div>
+                `;
+
+                messagesDiv.appendChild(botMessageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+                // Update conversation in list
+                await loadConversations();
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+
+                // Show error message
+                const errorMessageDiv = document.createElement('div');
+                errorMessageDiv.className = 'message';
+                errorMessageDiv.style.cssText = 'margin-bottom: 10px; padding: 10px; border-radius: 8px; max-width: 70%; margin-right: auto; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;';
+                errorMessageDiv.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px;">Error</div>
+                    <div>Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.</div>
+                `;
+                messagesDiv.appendChild(errorMessageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+                if (error.response && error.response.status === 401) {
+                    alert('Token expirado. Por favor, inicia sesión de nuevo.');
+                    logout();
+                }
+            }
+        }
+
+        // Delete conversation
+        async function deleteConversation() {
+            if (!currentConversationId) return;
+
+            if (!confirm('¿Eliminar esta conversación? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                await axios.delete(`http://localhost:8000/api/chatbot/conversations/${currentConversationId}`, { headers: getAuthHeaders() });
+                
+                // Remove from local array
+                chatbotConversations = chatbotConversations.filter(conv => conv.id !== currentConversationId);
+                
+                // Clear current conversation
+                currentConversationId = null;
+                document.getElementById('chatbot-messages').innerHTML = '';
+                document.getElementById('chatbot-input-area').style.display = 'none';
+                document.getElementById('conversation-actions').style.display = 'none';
+                document.getElementById('select-conversation-prompt').style.display = 'block';
+                document.getElementById('chatbot-header').querySelector('h2').textContent = 'Chatbot Educativo';
+                
+                renderConversations();
+                
+                alert('Conversación eliminada exitosamente');
+            } catch (error) {
+                console.error('Error deleting conversation:', error);
+                alert('Error eliminando conversación: ' + (error.response?.data?.message || error.message));
+            }
+        }
+
+        // Event listeners for chatbot
+        document.getElementById('new-conversation-btn').addEventListener('click', createNewConversation);
+        document.getElementById('send-chatbot').addEventListener('click', sendChatbotMessage);
+        document.getElementById('delete-conversation-btn').addEventListener('click', deleteConversation);
+
+        // Enter key for chatbot message input
+        document.getElementById('chatbot-message').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatbotMessage();
+            }
+        });
+
+        // Navigation to chatbot view
+        document.getElementById('show-chatbot').addEventListener('click', async () => {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById('chatbot-view').style.display = 'block';
+            await loadConversations();
+            // Show input area immediately for direct chatting
+            document.getElementById('chatbot-input-area').style.display = 'flex';
+            document.getElementById('select-conversation-prompt').style.display = 'none';
+            // If no conversations exist, create a new one automatically
+            if (chatbotConversations.length === 0) {
+                await createNewConversation();
+            } else {
+                // Select the most recent conversation
+                selectConversation(chatbotConversations[0].id);
+            }
+        });
 
         function openSubmissionModal(type, id) {
             currentSubmissionType = type;

@@ -3,22 +3,28 @@ import taskService from '../service/taskService';
 import { taskSchema } from '../model/Task/taskModel';
 import { getIO } from '../config/socket';
 import { createAndEmitNotification } from './notificationController';
-
-interface CustomRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
-
-export const createTask: RequestHandler = async (req: CustomRequest, res, next) => {
+import { AuthUser } from '../types/auth';
+import { CalendarService } from '../service/calendarService';
+export const createTask: RequestHandler = async (req: any, res, next) => {
   try {
-    const user = req.user;
+    const user = req.user as AuthUser;
+    console.log('Intento de crear tarea. Usuario:', {
+      id: user?.id,
+      username: user?.username,
+      role: user?.role,
+      roleType: typeof user?.role
+    });
+    
     if (!user || typeof user.role !== 'string') {
+      console.log('Usuario no autenticado o rol inválido');
       return res.status(403).json({ message: 'No autenticado.' });
     }
-    if (user.role.toLowerCase() !== 'tutor') {
+    
+    const normalizedRole = user.role.toUpperCase();
+    console.log('Rol normalizado:', normalizedRole);
+    
+    if (normalizedRole !== 'TUTOR') {
+      console.log('Acceso denegado. Rol actual:', normalizedRole);
       return res.status(403).json({ message: 'Solo los tutores pueden crear tareas.' });
     }
 
@@ -32,8 +38,9 @@ export const createTask: RequestHandler = async (req: CustomRequest, res, next) 
     if (!task) {
       return res.status(404).json({ message: 'Error al recuperar la tarea creada.' });
     }
-
     
+    let calendarWarning: string | undefined = undefined;
+
     if (task.responsibleId) {
       await createAndEmitNotification(
         task.responsibleId,
@@ -44,22 +51,51 @@ export const createTask: RequestHandler = async (req: CustomRequest, res, next) 
       );
 
       getIO().to(`user_${task.responsibleId}`).emit('task-created', task);
-    }
-    res.status(201).json(task);
+
+  // Sincronizar con Google Calendar si hay fecha límite
+        if (task.dueDate) {
+          try {
+            const calendarService = CalendarService.getInstance();
+            await calendarService.syncTaskToCalendar(task.id, task.responsibleId);
+            console.log('Tarea sincronizada con Google Calendar');
+          } catch (error: any) {
+            console.error('Error sincronizando tarea con calendario:', error);
+            if (error && (error.code === 'INSUFFICIENT_PERMISSIONS' || error.message?.includes('Insufficient'))) {
+              calendarWarning = 'El alumno no ha otorgado permisos de Google Calendar. Pídele que vuelva a iniciar sesión con Google para activar sincronización.';
+            } else {
+              calendarWarning = 'No fue posible sincronizar la tarea con el calendario del alumno.';
+            }
+            // No fallamos la creación de la tarea si falla la sincronización del calendario
+          }
+        }
+      }
+      // Responder con la tarea y posible advertencia sobre calendar
+      const responseBody: any = { task };
+      if (typeof calendarWarning !== 'undefined') {
+        responseBody.calendarWarning = calendarWarning;
+        // Añadir código de advertencia para que el frontend lo detecte fácilmente
+        if (calendarWarning.includes('permisos')) {
+          responseBody.calendarWarningCode = 'INSUFFICIENT_PERMISSIONS';
+        } else {
+          responseBody.calendarWarningCode = 'CALENDAR_SYNC_FAILED';
+        }
+      }
+      res.status(201).json(responseBody);
   } catch (error) {
     console.log('Error en createTask:', error);
     next(error);
   }
 };
 
-export const getTasks: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getTasks: RequestHandler = async (req: any, res, next) => {
   try {
     const allTasks = await taskService.getAll();
 
     // Si el usuario es tutor, agrupar tareas "lógicas" que fueron creadas una por cada alumno
     // y devolver una sola entrada con la lista de responsables y su estado.
     if (req.user && 'role' in req.user && req.user.role.toLowerCase() === 'tutor') {
-      const tutorId = req.user.id;
+      const user = req.user as AuthUser;
+      const tutorId = user.id;
       const tutorTasks = allTasks.filter(t => t.tutorId === tutorId);
 
       // Agrupar por una "huella" de la tarea (nombre, descripción, fecha, proyecto, prioridad, tipo)
@@ -103,7 +139,7 @@ export const getTasks: RequestHandler = async (req: CustomRequest, res, next) =>
   }
 };
 
-export const getTaskById: RequestHandler = async (req: CustomRequest, res, next) => {
+export const getTaskById: RequestHandler = async (req: any, res, next) => {
   try {
     const id = Number(req.params.id);
     const task = await taskService.getById(id);
@@ -114,7 +150,8 @@ export const getTaskById: RequestHandler = async (req: CustomRequest, res, next)
       const key = `${task.name}::${task.description ?? ''}::${task.dueDate ? new Date(task.dueDate).toISOString() : ''}::${task.projectId ?? ''}::${task.priority ?? ''}::${task.type ?? ''}`;
       const sameGroup = allTasks.filter(t => {
         const k = `${t.name}::${t.description ?? ''}::${t.dueDate ? new Date(t.dueDate).toISOString() : ''}::${t.projectId ?? ''}::${t.priority ?? ''}::${t.type ?? ''}`;
-        return k === key && t.tutorId === req.user!.id;
+        const user = req.user as AuthUser;
+        return k === key && t.tutorId === user.id;
       });
 
       const aggregated = {
@@ -139,7 +176,7 @@ export const getTaskById: RequestHandler = async (req: CustomRequest, res, next)
   }
 };
 
-export const updateTask: RequestHandler = async (req: CustomRequest, res, next) => {
+export const updateTask: RequestHandler = async (req: any, res, next) => {
   try {
     if (!req.user) {
       return res.status(403).json({ message: 'No autenticado.' });
@@ -149,7 +186,8 @@ export const updateTask: RequestHandler = async (req: CustomRequest, res, next) 
     if (!task) return res.status(404).json({ message: 'Tarea no encontrada' });
 
     // Solo el tutor puede actualizar tareas
-    if (req.user.role.toLowerCase() !== 'tutor') {
+    const user = req.user as AuthUser;
+    if (user.role.toLowerCase() !== 'tutor') {
       return res.status(403).json({ message: 'Solo los tutores pueden actualizar tareas.' });
     }
 
@@ -174,7 +212,7 @@ export const updateTask: RequestHandler = async (req: CustomRequest, res, next) 
   }
 };
 
-export const deleteTask: RequestHandler = async (req: CustomRequest, res, next) => {
+export const deleteTask: RequestHandler = async (req: any, res, next) => {
   try {
     const id = Number(req.params.id);
     const taskToDelete = await taskService.getById(id); // Obtener la tarea antes de eliminarla

@@ -11,7 +11,7 @@ export const userSchema = z.object(baseUser)
 export const loginSchema = z.object({
   username: z.string().min(1).max(255),
   password: z.string().min(1),
-})
+}).strict()
 
 export const editUserSchema = z.object(baseUser)
     .partial()

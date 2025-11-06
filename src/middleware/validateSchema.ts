@@ -1,9 +1,8 @@
-import { Request, Response, NextFunction } from 'express'
-import { ZodError, ZodObject } from 'zod'
+import { RequestHandler } from 'express';
+import { ZodSchema, ZodError } from 'zod';
 
-export const verifySchema =
-  (schema: ZodObject<any>) =>
-  (req: Request, res: Response, next: NextFunction) => {
+export const verifySchema = (schema: ZodSchema): RequestHandler => 
+  (req, res, next) => {
     try {
       schema.parse(req.body)
       next()
