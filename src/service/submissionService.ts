@@ -51,6 +51,12 @@ export class SubmissionService {
       },
     });
 
+    // Actualizar el estado de la tarea a "Completada" al entregar
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { status: 'Completada' }
+    });
+
     // Procesar archivos si existen
     if (files && files.length > 0) {
       const uploadDir = path.join(process.cwd(), 'uploads', 'submissions', submission.id.toString());
@@ -155,9 +161,9 @@ export class SubmissionService {
       throw new Error('No tienes permiso para calificar esta entrega');
     }
 
-    // Validar la calificación
-    if (grade < 0 || grade > 100) {
-      throw new Error('La calificación debe estar entre 0 y 100');
+    // Validar la calificación (escala 0.0 - 5.0)
+    if (grade < 0 || grade > 5.0) {
+      throw new Error('La calificación debe estar entre 0.0 y 5.0');
     }
 
     // Actualizar la entrega
@@ -180,7 +186,7 @@ export class SubmissionService {
     // Notificar al estudiante
     await createAndEmitNotification(
       submission.student.id,
-      `Tu tarea "${submission.task.name}" ha sido calificada con ${grade}/100`,
+      `Tu tarea "${submission.task.name}" ha sido calificada con ${grade}/5.0`,
       'task_graded',
       submission.task.id,
       'task'
@@ -303,6 +309,108 @@ export class SubmissionService {
       graded: gradedSubmissions,
       pending: pendingSubmissions,
       averageGrade: averageGrade._avg.grade || 0,
+    };
+  }
+
+  // Obtener todas las entregas de una tarea específica (para tutores)
+  public async getSubmissionsByTask(taskId: number, userId: number, userRole: string): Promise<any> {
+    // Verificar que la tarea existe
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: { tutor: true }
+    });
+
+    if (!task) {
+      throw new Error('Tarea no encontrada');
+    }
+
+    // Verificar permisos
+    const normalizedRole = (userRole || '').toUpperCase();
+    if (normalizedRole === 'TUTOR' && task.tutorId !== userId) {
+      throw new Error('No tienes permiso para ver las entregas de esta tarea');
+    }
+
+    // Si la tarea es parte de un grupo (mismo tutor, nombre, descripción, fecha, etc.)
+    // obtener todas las tareas del grupo para listar todas las entregas
+    const allTasks = await prisma.task.findMany({
+      where: {
+        tutorId: task.tutorId,
+        name: task.name,
+        description: task.description,
+        dueDate: task.dueDate,
+        projectId: task.projectId,
+        priority: task.priority,
+        type: task.type
+      },
+      include: {
+        responsible: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    const taskIds = allTasks.map(t => t.id);
+
+    // Obtener todas las entregas de estas tareas
+    const submissions = await prisma.submission.findMany({
+      where: {
+        taskId: { in: taskIds }
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        files: true,
+        gradedByUser: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true
+          }
+        }
+      },
+      orderBy: { submittedAt: 'desc' }
+    });
+
+    // Calcular estadísticas
+    const stats = {
+      totalStudents: allTasks.length,
+      totalSubmissions: submissions.length,
+      gradedSubmissions: submissions.filter(s => s.status === 'graded').length,
+      pendingSubmissions: submissions.filter(s => s.status === 'submitted').length,
+      averageGrade: submissions.filter(s => s.grade !== null).length > 0
+        ? submissions.filter(s => s.grade !== null).reduce((acc, s) => acc + (s.grade || 0), 0) / submissions.filter(s => s.grade !== null).length
+        : 0
+    };
+
+    // Crear mapa de estudiantes con sus entregas
+    const studentsWithSubmissions = allTasks.map(t => {
+      const submission = submissions.find(s => s.studentId === t.responsibleId);
+      return {
+        taskId: t.id,
+        student: t.responsible,
+        taskStatus: t.status,
+        submission: submission || null
+      };
+    });
+
+    return {
+      submissions,
+      studentsWithSubmissions,
+      stats
     };
   }
 }

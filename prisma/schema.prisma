@@ -130,7 +130,7 @@ model Submission {
   student     User     @relation("StudentSubmissions", fields: [studentId], references: [id])
   submittedAt DateTime @default(now())
   content     String?  // Texto adicional del estudiante
-  grade       Float?   // Calificación del tutor (0-100)
+  grade       Float?   // Calificación del tutor (0.0-5.0)
   feedback    String?  // Comentarios del tutor
   gradedAt    DateTime?
   gradedBy    Int?     // ID del tutor que calificó

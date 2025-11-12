@@ -9,5 +9,6 @@ export const createExamSchema = z.object({
 })
 
 export const submitExamSchema = z.object({
-  answers: z.record(z.string(), z.string()), // { questionId: answer }
+  examId: z.number().int().positive(),
+  answers: z.record(z.string(), z.union([z.string(), z.number()])), // { questionId: answer (string or number) }
 })

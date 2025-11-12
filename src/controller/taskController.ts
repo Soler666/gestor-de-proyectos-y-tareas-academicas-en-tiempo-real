@@ -31,56 +31,84 @@ export const createTask: RequestHandler = async (req: any, res, next) => {
     let data = req.body;
     data.tutorId = user.id; // Asignar tutorId al usuario autenticado
     console.log('Data received:', data);
-    const parsed = taskSchema.parse(data);
-    const createdTask = await taskService.create(parsed);
-    const task = await taskService.getById(createdTask.id);
-
-    if (!task) {
-      return res.status(404).json({ message: 'Error al recuperar la tarea creada.' });
-    }
     
-    let calendarWarning: string | undefined = undefined;
+    // Determinar lista de responsables
+    let responsibleIds: number[] = [];
+    if (data.responsibleIds && Array.isArray(data.responsibleIds) && data.responsibleIds.length > 0) {
+      responsibleIds = data.responsibleIds;
+    } else if (data.responsibleId) {
+      responsibleIds = [data.responsibleId];
+    } else {
+      return res.status(400).json({ message: 'Debe especificar al menos un alumno responsable.' });
+    }
 
-    if (task.responsibleId) {
+    const createdTasks: any[] = [];
+    const calendarWarnings: string[] = [];
+
+    // Crear una tarea por cada alumno responsable
+    for (const responsibleId of responsibleIds) {
+      const taskData = {
+        ...data,
+        responsibleId,
+        responsibleIds: undefined, // Eliminar el array para el schema individual
+      };
+      
+      const parsed = taskSchema.parse(taskData);
+      const createdTask = await taskService.create(parsed);
+      const task = await taskService.getById(createdTask.id);
+
+      if (!task) {
+        console.error(`Error al recuperar la tarea creada para responsibleId: ${responsibleId}`);
+        continue;
+      }
+
+      createdTasks.push(task);
+
+      // Notificar al alumno
       await createAndEmitNotification(
-        task.responsibleId,
+        responsibleId,
         `Se te ha asignado una nueva tarea: ${task.name}`,
         'task_assigned',
         task.id,
         'task'
       );
 
-      getIO().to(`user_${task.responsibleId}`).emit('task-created', task);
+      getIO().to(`user_${responsibleId}`).emit('task-created', task);
 
-  // Sincronizar con Google Calendar si hay fecha límite
-        if (task.dueDate) {
-          try {
-            const calendarService = CalendarService.getInstance();
-            await calendarService.syncTaskToCalendar(task.id, task.responsibleId);
-            console.log('Tarea sincronizada con Google Calendar');
-          } catch (error: any) {
-            console.error('Error sincronizando tarea con calendario:', error);
-            if (error && (error.code === 'INSUFFICIENT_PERMISSIONS' || error.message?.includes('Insufficient'))) {
-              calendarWarning = 'El alumno no ha otorgado permisos de Google Calendar. Pídele que vuelva a iniciar sesión con Google para activar sincronización.';
-            } else {
-              calendarWarning = 'No fue posible sincronizar la tarea con el calendario del alumno.';
-            }
-            // No fallamos la creación de la tarea si falla la sincronización del calendario
+      // Sincronizar con Google Calendar si hay fecha límite
+      if (task.dueDate) {
+        try {
+          const calendarService = CalendarService.getInstance();
+          await calendarService.syncTaskToCalendar(task.id, responsibleId);
+          console.log(`Tarea sincronizada con Google Calendar para alumno ${responsibleId}`);
+        } catch (error: any) {
+          console.error(`Error sincronizando tarea con calendario para alumno ${responsibleId}:`, error);
+          // Detectar si el alumno no ha autenticado con Google o no tiene permisos
+          if (error && (
+            error.code === 'INSUFFICIENT_PERMISSIONS' || 
+            error.message?.includes('Insufficient') ||
+            error.message?.includes('not authenticated with Google')
+          )) {
+            calendarWarnings.push(`Alumno ID ${responsibleId}: sin permisos de Google Calendar`);
+          } else {
+            calendarWarnings.push(`Alumno ID ${responsibleId}: error de sincronización`);
           }
         }
       }
-      // Responder con la tarea y posible advertencia sobre calendar
-      const responseBody: any = { task };
-      if (typeof calendarWarning !== 'undefined') {
-        responseBody.calendarWarning = calendarWarning;
-        // Añadir código de advertencia para que el frontend lo detecte fácilmente
-        if (calendarWarning.includes('permisos')) {
-          responseBody.calendarWarningCode = 'INSUFFICIENT_PERMISSIONS';
-        } else {
-          responseBody.calendarWarningCode = 'CALENDAR_SYNC_FAILED';
-        }
-      }
-      res.status(201).json(responseBody);
+    }
+
+    // Responder con las tareas creadas y posibles advertencias
+    const responseBody: any = { 
+      tasks: createdTasks,
+      count: createdTasks.length 
+    };
+    
+    if (calendarWarnings.length > 0) {
+      responseBody.calendarWarning = `Algunas tareas no se sincronizaron con Google Calendar: ${calendarWarnings.join(', ')}`;
+      responseBody.calendarWarningCode = 'CALENDAR_SYNC_PARTIAL';
+    }
+    
+    res.status(201).json(responseBody);
   } catch (error) {
     console.log('Error en createTask:', error);
     next(error);
@@ -99,13 +127,26 @@ export const getTasks: RequestHandler = async (req: any, res, next) => {
       const tutorTasks = allTasks.filter(t => t.tutorId === tutorId);
 
       // Agrupar por una "huella" de la tarea (nombre, descripción, fecha, proyecto, prioridad, tipo)
+      // Normalizamos los valores para asegurar un agrupamiento correcto
       const grouped = new Map<string, any>();
 
       for (const t of tutorTasks) {
-        const key = `${t.name}::${t.description ?? ''}::${t.dueDate ? new Date(t.dueDate).toISOString() : ''}::${t.projectId ?? ''}::${t.priority ?? ''}::${t.type ?? ''}`;
+        // Normalizar fecha a formato ISO sin milisegundos
+        const normalizedDate = t.dueDate ? new Date(t.dueDate).toISOString().split('.')[0] : 'null';
+        
+        // Crear clave única basada en los campos que definen una tarea "lógica"
+        const key = [
+          t.name?.trim() || '',
+          t.description?.trim() || '',
+          normalizedDate,
+          String(t.projectId ?? 'null'),
+          t.priority?.trim() || '',
+          t.type?.trim() || ''
+        ].join('||');
+
         if (!grouped.has(key)) {
           grouped.set(key, {
-            id: t.id,
+            id: t.id, // Usar el ID de la primera tarea del grupo
             name: t.name,
             description: t.description,
             dueDate: t.dueDate,
@@ -114,17 +155,29 @@ export const getTasks: RequestHandler = async (req: any, res, next) => {
             type: t.type,
             project: t.project,
             tutor: t.tutor,
-            // responsibles: lista de alumnos con su id, username y estado de la tarea para cada uno
+            projectId: t.projectId,
+            tutorId: t.tutorId,
+            // responsibles: lista de alumnos con su id, username, firstName, lastName y estado de la tarea para cada uno
             responsibles: [],
           });
         }
+        
         const entry = grouped.get(key);
-        entry.responsibles.push({ id: t.responsibleId, username: t.responsible?.username, status: t.status });
+        entry.responsibles.push({ 
+          id: t.responsibleId, 
+          username: t.responsible?.username,
+          firstName: t.responsible?.firstName,
+          lastName: t.responsible?.lastName,
+          status: t.status 
+        });
 
-        // Ajustar estado agregado: si alguno está Pendiente, marcar pendiente; else si alguno En progreso -> En progreso; else Completada
+        // Ajustar estado agregado basado en prioridad: Pendiente > En progreso > Completada
         if (entry.status !== 'Pendiente') {
-          if (t.status === 'Pendiente') entry.status = 'Pendiente';
-          else if (entry.status !== 'En progreso' && t.status === 'En progreso') entry.status = 'En progreso';
+          if (t.status === 'Pendiente') {
+            entry.status = 'Pendiente';
+          } else if (entry.status !== 'En progreso' && t.status === 'En progreso') {
+            entry.status = 'En progreso';
+          }
         }
       }
 
@@ -147,12 +200,44 @@ export const getTaskById: RequestHandler = async (req: any, res, next) => {
 
     if (req.user && 'role' in req.user && req.user.role.toLowerCase() === 'tutor') {
       const allTasks = await taskService.getAll();
-      const key = `${task.name}::${task.description ?? ''}::${task.dueDate ? new Date(task.dueDate).toISOString() : ''}::${task.projectId ?? ''}::${task.priority ?? ''}::${task.type ?? ''}`;
+      
+      // Normalizar fecha igual que en getTasks
+      const normalizedDate = task.dueDate ? new Date(task.dueDate).toISOString().split('.')[0] : 'null';
+      
+      // Crear clave única consistente con getTasks
+      const key = [
+        task.name?.trim() || '',
+        task.description?.trim() || '',
+        normalizedDate,
+        String(task.projectId ?? 'null'),
+        task.priority?.trim() || '',
+        task.type?.trim() || ''
+      ].join('||');
+
+      const user = req.user as AuthUser;
       const sameGroup = allTasks.filter(t => {
-        const k = `${t.name}::${t.description ?? ''}::${t.dueDate ? new Date(t.dueDate).toISOString() : ''}::${t.projectId ?? ''}::${t.priority ?? ''}::${t.type ?? ''}`;
-        const user = req.user as AuthUser;
+        const tNormalizedDate = t.dueDate ? new Date(t.dueDate).toISOString().split('.')[0] : 'null';
+        const k = [
+          t.name?.trim() || '',
+          t.description?.trim() || '',
+          tNormalizedDate,
+          String(t.projectId ?? 'null'),
+          t.priority?.trim() || '',
+          t.type?.trim() || ''
+        ].join('||');
         return k === key && t.tutorId === user.id;
       });
+
+      // Determinar el estado agregado
+      let aggregatedStatus = 'Completada';
+      for (const t of sameGroup) {
+        if (t.status === 'Pendiente') {
+          aggregatedStatus = 'Pendiente';
+          break;
+        } else if (t.status === 'En progreso') {
+          aggregatedStatus = 'En progreso';
+        }
+      }
 
       const aggregated = {
         id: task.id,
@@ -160,11 +245,19 @@ export const getTaskById: RequestHandler = async (req: any, res, next) => {
         description: task.description,
         dueDate: task.dueDate,
         priority: task.priority,
-        status: task.status,
+        status: aggregatedStatus,
         type: task.type,
         project: task.project,
         tutor: task.tutor,
-        responsibles: sameGroup.map(t => ({ id: t.responsibleId, username: t.responsible?.username, status: t.status })),
+        projectId: task.projectId,
+        tutorId: task.tutorId,
+        responsibles: sameGroup.map(t => ({ 
+          id: t.responsibleId, 
+          username: t.responsible?.username,
+          firstName: t.responsible?.firstName,
+          lastName: t.responsible?.lastName,
+          status: t.status 
+        })),
       };
 
       return res.json(aggregated);

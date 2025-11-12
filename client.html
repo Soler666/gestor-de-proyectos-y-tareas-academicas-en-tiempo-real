@@ -1601,7 +1601,7 @@
             try {
                 console.log('Iniciando carga de usuarios...');
                 // Timeout reducido a 5000 ms para respuesta más rápida
-                const response = await axios.get('http://localhost:8000/user/', { headers: getAuthHeaders(), timeout: 5000 });
+                const response = await axios.get('http://localhost:8000/users/', { headers: getAuthHeaders(), timeout: 5000 });
                 console.log('Respuesta recibida de usuarios:', response);
                 if (!response.data || !Array.isArray(response.data)) {
                     console.error('Respuesta inesperada al cargar usuarios:', response.data);

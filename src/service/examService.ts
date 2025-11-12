@@ -57,9 +57,14 @@ export async function createExam(data: CreateExamData) {
 }
 
 export async function getExamsForStudent(studentId: number) {
+  // Incluir exámenes activos o exámenes ya completados por el estudiante (para que no "desaparezcan"),
+  // manteniendo filtrado por asignación.
   const exams = await prisma.exam.findMany({
     where: {
-      status: 'active',
+      OR: [
+        { status: 'active' },
+        { submissions: { some: { studentId } } }
+      ],
     },
     include: {
       questions: true,
@@ -69,7 +74,7 @@ export async function getExamsForStudent(studentId: number) {
     },
   });
 
-  // Filter exams where student is assigned
+  // Filtrar por asignación al estudiante
   return exams.filter(exam => {
     try {
       const assignedTo = exam.assignedTo ? JSON.parse(exam.assignedTo) : [];
@@ -132,12 +137,26 @@ export async function submitExam(examId: number, studentId: number, answers: Rec
   let correct = 0;
   const review: any = {};
   exam.questions.forEach((q) => {
-    const answer = answers[q.id.toString()];
-    const isCorrect = answer === q.correctAnswer;
+    const userAnswerIndex = answers[q.id.toString()]; // "0", "1", "2", "3"
+    
+    // La respuesta correcta del backend puede ser "a)" o "a) Texto completo"
+    // Extraer solo la letra (primer carácter antes del paréntesis)
+    let correctIndex = '';
+    if (q.correctAnswer) {
+      const match = q.correctAnswer.match(/^([a-d])\)/i);
+      if (match && match[1]) {
+        // Convertir letra a índice: a->0, b->1, c->2, d->3
+        const letterMap: Record<string, string> = { 'a': '0', 'b': '1', 'c': '2', 'd': '3' };
+        correctIndex = letterMap[match[1].toLowerCase()] || '';
+      }
+    }
+    
+    const isCorrect = userAnswerIndex === correctIndex;
     if (isCorrect) correct++;
+    
     review[q.id] = {
       question: q.question,
-      userAnswer: answer,
+      userAnswer: userAnswerIndex,
       correctAnswer: q.correctAnswer,
       isCorrect,
     };
@@ -168,6 +187,23 @@ export async function submitExam(examId: number, studentId: number, answers: Rec
     exam.id,
     'exam'
   );
+
+  // Verificar si todos los estudiantes asignados completaron el examen
+  const assignedStudents = exam.assignedTo ? JSON.parse(exam.assignedTo) : [];
+  const allSubmissions = await prisma.examSubmission.findMany({
+    where: { examId },
+    select: { studentId: true }
+  });
+  const submittedStudentIds = allSubmissions.map(sub => sub.studentId);
+  
+  // Si todos los estudiantes asignados ya enviaron su examen, marcar como completado
+  const allCompleted = assignedStudents.every((id: number) => submittedStudentIds.includes(id));
+  if (allCompleted && exam.status !== 'completed') {
+    await prisma.exam.update({
+      where: { id: examId },
+      data: { status: 'completed' }
+    });
+  }
 
   return submission;
 }

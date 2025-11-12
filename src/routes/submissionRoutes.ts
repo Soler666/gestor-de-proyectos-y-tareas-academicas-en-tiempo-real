@@ -8,6 +8,7 @@ import {
   deleteSubmission,
   downloadFile,
   getSubmissionStats,
+  getSubmissionsByTask,
   uploadMiddleware
 } from '../controller/submissionController';
 import { verifySchema } from '../middleware/validateSchema'; // Import verifySchema
@@ -41,5 +42,8 @@ router.get('/:submissionId/files/:fileId/download', downloadFile as any);
 
 // Obtener estadísticas de entregas
 router.get('/stats', getSubmissionStats as any);
+
+// Obtener entregas por tarea
+router.get('/by-task/:taskId', getSubmissionsByTask as any);
 
 export default router;

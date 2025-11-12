@@ -34,8 +34,9 @@ export const register: RequestHandler = async (req, res, next) => {
     const { password, ...userWithoutPassword } = newUser;
 
     res.status(201).json({
-      message: 'Usuario registrado exitosamente. Pendiente de aprobación por administrador.',
-      user: userWithoutPassword
+      message: '✅ Usuario registrado exitosamente. Tu cuenta está pendiente de aprobación por un administrador. Te notificaremos cuando sea aprobada.',
+      user: userWithoutPassword,
+      status: 'PENDING'
     });
   } catch (error) {
     next(error);
@@ -52,10 +53,30 @@ export const login: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Verificar si el usuario está aprobado
+    // Verificar el estado del usuario
+    if (user.status === 'PENDING') {
+      res.status(403).json({
+        message: 'Tu cuenta está pendiente de aprobación por un administrador. Te notificaremos por email cuando sea aprobada.',
+        code: 'ACCOUNT_PENDING_APPROVAL',
+        status: user.status
+      });
+      return;
+    }
+
+    if (user.status === 'REJECTED') {
+      res.status(403).json({
+        message: 'Tu cuenta ha sido rechazada. Contacta al soporte para más información.',
+        code: 'ACCOUNT_REJECTED',
+        status: user.status
+      });
+      return;
+    }
+
     if (user.status !== 'APPROVED') {
       res.status(403).json({
-        message: 'Tu cuenta está pendiente de aprobación por un administrador. Contacta al soporte si crees que es un error.'
+        message: 'Tu cuenta no está disponible. Contacta al soporte para más información.',
+        code: 'ACCOUNT_UNAVAILABLE',
+        status: user.status
       });
       return;
     }

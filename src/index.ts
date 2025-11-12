@@ -67,18 +67,22 @@ io.on('connection', (socket) => {
             select: {
               id: true,
               username: true,
+              firstName: true,
+              lastName: true,
               role: true,
             },
           },
         },
       });
+      // Log actividad
+      try {
+        const activityLogger = ActivityLogService.getInstance();
+        await activityLogger.logChatMessage(userData.id, savedMessage.id);
+      } catch (e) {
+        console.error('No se pudo registrar actividad de mensaje público:', e);
+      }
       // Emitir a todos los usuarios conectados
-      io.emit('public-message', {
-        user: userData.username,
-        role: userData.role,
-        message: msg,
-        timestamp: new Date(),
-      });
+      io.emit('public-message', savedMessage);
       // Emitir notificaciones a todos los usuarios conectados excepto el remitente
       const connectedSockets = await io.fetchSockets();
       for (const s of connectedSockets) {
@@ -126,6 +130,8 @@ io.on('connection', (socket) => {
             select: {
               id: true,
               username: true,
+              firstName: true,
+              lastName: true,
               role: true,
             },
           },
@@ -133,33 +139,26 @@ io.on('connection', (socket) => {
             select: {
               id: true,
               username: true,
+              firstName: true,
+              lastName: true,
               role: true,
             },
           },
         },
       });
+      // Log actividad
+      try {
+        const activityLogger = ActivityLogService.getInstance();
+        await activityLogger.logChatMessage(userData.id, savedMessage.id, recipientId);
+      } catch (e) {
+        console.error('No se pudo registrar actividad de mensaje privado:', e);
+      }
 
       // Emitir al destinatario
-      io.to(`user_${recipientId}`).emit('private-message', {
-        id: savedMessage.id,
-        user: userData.username,
-        role: userData.role,
-        senderId: userData.id,
-        message,
-        timestamp: new Date(),
-        recipientId,
-      });
+      io.to(`user_${recipientId}`).emit('private-message', savedMessage);
 
       // También emitir al remitente para confirmar
-      socket.emit('private-message-sent', {
-        id: savedMessage.id,
-        user: userData.username,
-        role: userData.role,
-        senderId: userData.id,
-        message,
-        timestamp: new Date(),
-        recipientId,
-      });
+      socket.emit('private-message-sent', savedMessage);
 
       // Crear notificación para el destinatario
       await createAndEmitNotification(
