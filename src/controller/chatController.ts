@@ -14,6 +14,8 @@ export const getChatMessages: RequestHandler = async (req, res, next) => {
         select: {
           id: true,
           username: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       },
@@ -63,6 +65,8 @@ export const getPrivateMessages: RequestHandler = async (req, res, next) => {
         select: {
           id: true,
           username: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       },
@@ -70,6 +74,8 @@ export const getPrivateMessages: RequestHandler = async (req, res, next) => {
         select: {
           id: true,
           username: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       },
@@ -98,6 +104,8 @@ export const createChatMessage: RequestHandler = async (req, res, next) => {
         select: {
           id: true,
           username: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       },
@@ -144,6 +152,8 @@ export const createPrivateMessage: RequestHandler = async (req, res, next) => {
         select: {
           id: true,
           username: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       },
@@ -151,6 +161,8 @@ export const createPrivateMessage: RequestHandler = async (req, res, next) => {
         select: {
           id: true,
           username: true,
+          firstName: true,
+          lastName: true,
           role: true,
         },
       },

@@ -6,6 +6,7 @@ import passport from '../service/googleAuthService'
 import prisma from '../config/database'
 import verifyToken from '../middleware/jwt/verifyToken'
 import createToken from '../middleware/jwt/createToken'
+import { config } from '../config/config'
 
 // Extender el tipo Request para incluir el usuario
 declare module 'express-serve-static-core' {
@@ -53,58 +54,77 @@ authRouter.get('/google/callback',
   (req: Request, res: Response, next: NextFunction) => {
     console.log('Recibiendo callback de Google...');
     passport.authenticate('google', { 
-      failureRedirect: '/login',
+      failureRedirect: `${config.FRONTEND_URL}/?error=google_auth_failed`,
       failureMessage: true
     }, async (err: any, user: any, info: any) => {
       if (err) {
         console.error('Error en autenticación de Google:', err);
-        return res.redirect(`http://localhost:8000/login?error=${encodeURIComponent(err.message)}`);
+        return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent(err.message)}`);
       }
 
       if (!user) {
         console.error('No se encontró usuario:', info);
-        return res.redirect('http://localhost:8000/login?error=no_user');
+        return res.redirect(`${config.FRONTEND_URL}/?error=no_user`);
       }
 
       try {
         console.log('Usuario autenticado:', user);
+        
+        // PRIORIDAD: si el perfil NO está completo, enviar al flujo de completado sin bloquear por status
+        if (user.profileComplete === false) {
+          const setupPayload = {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            status: user.status, // puede estar en PENDING inicial
+            googleId: user.googleId,
+            profileComplete: false,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+          }
+          const setupToken = createToken(setupPayload, '1h')
+          res.cookie('token', setupToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 3600000
+          })
+          return res.redirect(`${config.FRONTEND_URL}/profile-setup?token=${setupToken}`)
+        }
+
+        // Solo aplicar restricciones de estado cuando el perfil ya está completo
+        if (user.status === 'PENDING') {
+          return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent('Tu cuenta está pendiente de aprobación por un administrador')}&code=ACCOUNT_PENDING_APPROVAL`);
+        }
+        if (user.status === 'REJECTED') {
+          return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent('Tu cuenta ha sido rechazada. Contacta al soporte para más información')}&code=ACCOUNT_REJECTED`);
+        }
+        if (user.status !== 'APPROVED') {
+          return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent('Tu cuenta no está disponible. Contacta al soporte')}&code=ACCOUNT_UNAVAILABLE`);
+        }
+
         const payload = {
           id: user.id,
-          username: user.username,
-          role: user.role,
-          status: user.status,
-          googleId: user.googleId
-        };
-
-        console.log('Generando token con payload:', payload);
-        const token = createToken(payload, '1h');
-        console.log('Token generado:', token);
-        
-        // Configurar cookie segura
-        res.cookie('token', token, { 
+            username: user.username,
+            role: user.role,
+            status: user.status,
+            googleId: user.googleId,
+            profileComplete: true,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+        }
+        const token = createToken(payload, '1h')
+        res.cookie('token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
           path: '/',
-          maxAge: 3600000 // 1 hora
-        });
-        
-        // Redirigir con token en query params para el cliente
-        // Guardar el token en una cookie
-        res.cookie('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 3600000 // 1 hora
-        });
-
-        // Si el perfil no está completo, redirigir al flujo de completado de perfil
-        if (user.profileComplete === false) {
-          // Redirigir a la página pública de completado de perfil (token se envía en cookie httpOnly)
-          return res.redirect('/profile-setup');
-        }
-
-        // Redirigir al cliente con los datos del usuario (perfil ya completo)
-        res.redirect(`/client.html?token=${token}&userId=${user.id}&username=${encodeURIComponent(user.username)}&role=${user.role}`);
+          maxAge: 3600000
+        })
+        return res.redirect(`${config.FRONTEND_URL}/?token=${token}&userId=${user.id}&username=${encodeURIComponent(user.username)}&role=${user.role}`)
       } catch (error) {
         console.error('Error generando token:', error);
         res.status(500).json({

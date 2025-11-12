@@ -10,6 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   JWT_SECRET: z.string().default('your-super-secret-key-minimum-32-chars-long'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string(),
   GOOGLE_CLIENT_ID: z.string({
     required_error: 'GOOGLE_CLIENT_ID es requerido para la autenticación de Google',

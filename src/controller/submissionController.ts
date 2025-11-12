@@ -281,3 +281,29 @@ export const getSubmissionStats: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+// Obtener entregas de una tarea específica
+export const getSubmissionsByTask: RequestHandler = async (req, res, next) => {
+  try {
+    const user = req.user as AuthUser;
+    if (!user) {
+      return res.status(403).json({ message: 'No autenticado.' });
+    }
+
+    const { taskId } = req.params;
+
+    if (!taskId) {
+      return res.status(400).json({ message: 'ID de tarea es requerido.' });
+    }
+
+    const result = await submissionService.getSubmissionsByTask(
+      parseInt(taskId),
+      user.id,
+      user.role
+    );
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};

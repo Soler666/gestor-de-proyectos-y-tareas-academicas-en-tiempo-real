@@ -19,6 +19,8 @@ import googleRoutes from './routes/googleRoutes'
 import profileRoutes from './routes/profileRoutes'
 import adminRoutes from './routes/adminRoutes'
 import chatbotRoutes from './routes/chatbotRoutes'
+import activityLogRoutes from './routes/activityLogRoutes'
+import dashboardRoutes from './routes/dashboardRoutes'
 
 const app = express()
 const port = config.PORT
@@ -36,9 +38,10 @@ app.use(showRequests)
 // Configuración CORS más segura
 app.use(cors({
   origin: config.CORS_ORIGIN,
-  exposedHeaders: ['token'],
+  // Exponer headers necesarios para descargas con nombre de archivo
+  exposedHeaders: ['token', 'Content-Disposition'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'token']
 }))
 
@@ -72,7 +75,7 @@ app.get('/profile-setup', (_req, res) => {
 })
 
 app.use('/auth', authRouter)
-app.use('/user', userRoutes)
+app.use('/users', userRoutes)
 app.use('/projects', projectRoutes)
 app.use('/tasks', taskRoutes)
 app.use('/api/chat', chatRoutes)
@@ -85,6 +88,8 @@ app.use('/google', googleRoutes)
 app.use('/profile', profileRoutes)
 app.use('/admin', adminRoutes)
 app.use('/chatbot', chatbotRoutes)
+app.use('/activity-logs', activityLogRoutes)
+app.use('/dashboard', dashboardRoutes)
 
 //TODO: añadir validaciones con zod (listo)
 
