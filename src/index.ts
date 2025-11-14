@@ -18,7 +18,8 @@ const httpServer = createServer(app);
 // Configuración de Socket.IO con opciones mejoradas
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+   // origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+origin: '*',
     credentials: true,
     methods: ['GET', 'POST']
   },

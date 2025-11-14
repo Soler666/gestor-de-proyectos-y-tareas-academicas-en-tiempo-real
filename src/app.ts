@@ -37,7 +37,8 @@ app.use(showRequests)
 
 // Configuración CORS más segura
 app.use(cors({
-  origin: config.CORS_ORIGIN,
+ // origin: config.CORS_ORIGIN,
+ origin: '*',
   // Exponer headers necesarios para descargas con nombre de archivo
   exposedHeaders: ['token', 'Content-Disposition'],
   credentials: true,
