@@ -38,7 +38,7 @@ app.use(showRequests)
 // Configuración CORS más segura
 app.use(cors({
  // origin: config.CORS_ORIGIN,
- origin: 'https://simback.netlify.app/',
+ origin: 'https://simback.netlify.app',
   // Exponer headers necesarios para descargas con nombre de archivo
   exposedHeaders: ['token', 'Content-Disposition'],
   credentials: true,

@@ -19,7 +19,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
    // origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-origin: 'https://simback.netlify.app/',
+origin: 'https://simback.netlify.app',
     credentials: true,
     methods: ['GET', 'POST']
   },
