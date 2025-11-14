@@ -54,17 +54,17 @@ authRouter.get('/google/callback',
   (req: Request, res: Response, next: NextFunction) => {
     console.log('Recibiendo callback de Google...');
     passport.authenticate('google', { 
-      failureRedirect: `${config.FRONTEND_URL}/?error=google_auth_failed`,
+      failureRedirect: `https://simback.netlify.app/?error=google_auth_failed`,
       failureMessage: true
     }, async (err: any, user: any, info: any) => {
       if (err) {
         console.error('Error en autenticación de Google:', err);
-        return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent(err.message)}`);
+        return res.redirect(`https://simback.netlify.app/?error=${encodeURIComponent(err.message)}`);
       }
 
       if (!user) {
         console.error('No se encontró usuario:', info);
-        return res.redirect(`${config.FRONTEND_URL}/?error=no_user`);
+        return res.redirect(`https://simback.netlify.app/?error=no_user`);
       }
 
       try {
@@ -91,18 +91,18 @@ authRouter.get('/google/callback',
             path: '/',
             maxAge: 3600000
           })
-          return res.redirect(`${config.FRONTEND_URL}/profile-setup?token=${setupToken}`)
+          return res.redirect(`https://simback.netlify.app/profile-setup?token=${setupToken}`)
         }
 
         // Solo aplicar restricciones de estado cuando el perfil ya está completo
         if (user.status === 'PENDING') {
-          return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent('Tu cuenta está pendiente de aprobación por un administrador')}&code=ACCOUNT_PENDING_APPROVAL`);
+          return res.redirect(`https://simback.netlify.app/?error=${encodeURIComponent('Tu cuenta está pendiente de aprobación por un administrador')}&code=ACCOUNT_PENDING_APPROVAL`);
         }
         if (user.status === 'REJECTED') {
-          return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent('Tu cuenta ha sido rechazada. Contacta al soporte para más información')}&code=ACCOUNT_REJECTED`);
+          return res.redirect(`https://simback.netlify.app/?error=${encodeURIComponent('Tu cuenta ha sido rechazada. Contacta al soporte para más información')}&code=ACCOUNT_REJECTED`);
         }
         if (user.status !== 'APPROVED') {
-          return res.redirect(`${config.FRONTEND_URL}/?error=${encodeURIComponent('Tu cuenta no está disponible. Contacta al soporte')}&code=ACCOUNT_UNAVAILABLE`);
+          return res.redirect(`https://simback.netlify.app/?error=${encodeURIComponent('Tu cuenta no está disponible. Contacta al soporte')}&code=ACCOUNT_UNAVAILABLE`);
         }
 
         const payload = {
@@ -124,7 +124,7 @@ authRouter.get('/google/callback',
           path: '/',
           maxAge: 3600000
         })
-        return res.redirect(`${config.FRONTEND_URL}/?token=${token}&userId=${user.id}&username=${encodeURIComponent(user.username)}&role=${user.role}`)
+        return res.redirect(`https://simback.netlify.app/?token=${token}&userId=${user.id}&username=${encodeURIComponent(user.username)}&role=${user.role}`)
       } catch (error) {
         console.error('Error generando token:', error);
         res.status(500).json({
