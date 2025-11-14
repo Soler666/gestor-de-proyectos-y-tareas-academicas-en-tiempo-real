@@ -39,7 +39,7 @@
   "main": "src/index.tx",
   "scripts": {
     "dev": "npx ts-node-dev --no-warnings src/index.ts",
-    "build": "npx tsc && cp -r generated dist/",
+    "build": "npx tsc && cp -r src/generated dist/",
     "start": "node --no-warnings main.js"
   },
   "prisma": {
