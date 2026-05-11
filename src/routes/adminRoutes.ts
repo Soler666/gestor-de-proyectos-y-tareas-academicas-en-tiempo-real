@@ -213,4 +213,22 @@ router.post('/clear-google-tokens', requireAdmin, async (req: any, res) => {
   }
 });
 
+// ====== ADMIN - Cursos (Course Management) ======
+import {
+  adminCreateCourse,
+  adminAssignTutorToCourse,
+  adminEnrollStudentsInCourse,
+} from '../controller/adminCourseController'
+import { adminUpdateUser } from '../controller/adminUserController'
+
+// Rutas de cursos y update de usuario (solo ADMIN)
+router.post('/courses', adminCreateCourse)
+router.put('/courses/:courseId/assign-tutor', adminAssignTutorToCourse)
+router.post('/courses/:courseId/enroll', adminEnrollStudentsInCourse)
+
+// Actualizar usuario por admin (incluye role)
+router.put('/users/:userId', adminUpdateUser)
+
 export default router;
+
+

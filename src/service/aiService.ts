@@ -10,66 +10,84 @@ export interface Question {
 }
 
 export async function generateQuestions(topics: string[], numQuestions: number): Promise<Question[]> {
-  // Si hay API key configurada, usar Gemini
   if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'dummy-key') {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const prompt = `
-Genera ${numQuestions} preguntas de examen de opción múltiple (estilo ICFES/SABER) basadas en los siguientes temas: ${topics.join(', ')}.
+    const prompt = `Genera exactamente ${numQuestions} preguntas de opción múltiple sobre: ${topics.join(', ')}.
 
-IMPORTANTE:
-- TODAS las preguntas deben ser de opción múltiple con exactamente 4 opciones (a, b, c, d)
-- Las preguntas deben ser de nivel educativo real, desafiantes pero apropiadas para estudiantes
-- Deben evaluar conocimientos específicos de los temas proporcionados
-- Evita preguntas triviales o demasiado fáciles
+IMPORTANTE: Responde ÚNICAMENTE con un array JSON válido. No agregues texto adicional, explicaciones, o bloques de código.
 
-Devuelve un JSON array de objetos con estructura exacta:
-[{
-  "question": "Texto completo de la pregunta",
-  "options": ["a) Opción 1", "b) Opción 2", "c) Opción 3", "d) Opción 4"],
-  "correctAnswer": "Letra de la respuesta correcta (ej: 'a)', 'b)', etc.)",
-  "type": "multiple_choice"
-}]
+Formato exacto (copia y pega este formato):
+[
+  {
+    "question": "¿Cuál es la capital de Francia?",
+    "options": ["a) Londres", "b) París", "c) Madrid", "d) Roma"],
+    "correctAnswer": "b) París",
+    "type": "multiple_choice"
+  }
+]
 
-Ejemplos de preguntas buenas:
-- "¿Cuál de los siguientes lenguajes de programación se utiliza principalmente para el desarrollo web del lado del cliente?"
-  Opciones: ["a) Java", "b) HTML", "c) Python", "d) C++"]
-  Respuesta correcta: "b) HTML"
+Asegúrate de que:
+- Sea un array válido de objetos JSON
+- Cada pregunta tenga exactamente 4 opciones (a, b, c, d)
+- La respuesta correcta sea una de las opciones
+- No haya comas finales innecesarias
+- El JSON esté bien formado`;
 
-- "¿Qué teorema establece que en un triángulo rectángulo, el cuadrado de la hipotenusa es igual a la suma de los cuadrados de los catetos?"
-  Opciones: ["a) Teorema de Tales", "b) Teorema de Pitágoras", "c) Teorema de Euclides", "d) Teorema de Fermat"]
-  Respuesta correcta: "b) Teorema de Pitágoras"
+    const maxRetries = 3;
+    let lastError: any;
 
-Asegúrate de que las preguntas sean variadas y cubran todos los temas especificados.
-`;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
 
-    try {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+        if (!text) {
+          throw new Error('No se pudo generar preguntas.');
+        }
 
-      if (!text) {
-        throw new Error('No se pudo generar preguntas con IA.');
+        // Limpiar el texto: remover bloques de código markdown si existen
+        text = text.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '').trim();
+
+        // Buscar el array JSON - encontrar el primer [ y el último ]
+        const startIndex = text.indexOf('[');
+        const endIndex = text.lastIndexOf(']');
+
+        if (startIndex === -1 || endIndex === -1 || startIndex >= endIndex) {
+          console.error('Texto recibido:', text);
+          throw new Error('No se encontró un array JSON válido en la respuesta.');
+        }
+
+        let jsonString = text.substring(startIndex, endIndex + 1);
+
+        // Limpiar caracteres problemáticos
+        jsonString = jsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control characters
+        jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1'); // Remove trailing commas
+
+        console.log('JSON a parsear:', jsonString.substring(0, 200) + '...');
+
+        const questions: Question[] = JSON.parse(jsonString);
+        return Array.isArray(questions) && questions.length > 0 ? questions : [];
+      } catch (error: any) {
+        lastError = error;
+        console.error(`Intento ${attempt} en generación de preguntas fallido:`, error.message);
+
+        // Si es un error 503, reintentar
+        if (error.status === 503 && attempt < maxRetries) {
+          console.log(`Reintentando generación de preguntas en ${attempt * 2} segundos...`);
+          await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+          continue;
+        }
+
+        // Para otros errores, no reintentar
+        break;
       }
-
-      // Extraer JSON del texto (Gemini puede devolver texto adicional)
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        throw new Error('La respuesta de IA no contiene JSON válido.');
-      }
-
-      const questions: Question[] = JSON.parse(jsonMatch[0]);
-      if (!Array.isArray(questions) || questions.length === 0) {
-        throw new Error('La respuesta de IA no contiene preguntas válidas.');
-      }
-
-      return questions;
-    } catch (error) {
-      console.error('Error generando preguntas con IA:', error);
-      throw new Error('Fallo en la generación de preguntas con IA. Verifica tu API key de Gemini.');
     }
+
+    console.error('Error final en generación de preguntas:', lastError);
+    throw new Error('Fallo generación preguntas.');
   }
 
-  // Si no hay API key configurada, lanzar error
-  throw new Error('Gemini API key no configurada. Las preguntas solo pueden generarse con IA.');
+  throw new Error('API key Gemini no configurada.');
 }

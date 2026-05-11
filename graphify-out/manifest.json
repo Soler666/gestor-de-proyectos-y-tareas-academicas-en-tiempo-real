@@ -1,0 +1,478 @@
+{
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\main.js": {
+    "mtime": 1757818784.0,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\select.sql": {
+    "mtime": 1759379756.6021416,
+    "hash": "6056adfffe3c9d89b14ba5679ebaf76b"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\temp.js": {
+    "mtime": 1759379827.5529664,
+    "hash": "03ceb7fa9665c56b9451ceca21e17de2"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\seed.ts": {
+    "mtime": 1762973681.6808743,
+    "hash": "08295ccb53df486075eda1ce53f7776a"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20250915182740_\\migration.sql": {
+    "mtime": 1757960860.133039,
+    "hash": "c9f9c2aceee14434e9efcb7cad3fd5ac"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20250916222308_init_project_task\\migration.sql": {
+    "mtime": 1758061388.2315085,
+    "hash": "bfbf9423a0b6ca3d1c38ae8a51927484"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20250916225946_add_tutor_to_project_optional\\migration.sql": {
+    "mtime": 1758063586.9588404,
+    "hash": "c75b7a5df1d83d712d0d6990d70ab8d2"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251001232844_add_task_type_optional_project\\migration.sql": {
+    "mtime": 1759361324.7227662,
+    "hash": "070219663ded46d194556b53d42ec6f9"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251002034556_\\migration.sql": {
+    "mtime": 1759376756.9754217,
+    "hash": "8b0602860263bd6b77c07224071f2f19"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251002223831_add_chat_message\\migration.sql": {
+    "mtime": 1759444711.3100533,
+    "hash": "62c3655c41f61c278c49acfb2263cc81"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251008010159_add_notifications\\migration.sql": {
+    "mtime": 1759885319.4699378,
+    "hash": "0ff4a987df5d2a2491fabf8770831914"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251008021814_add_private_messaging\\migration.sql": {
+    "mtime": 1759889894.1636817,
+    "hash": "d368b5e31ef7c4f7e94432f4b60a3d64"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251020204714_add_reminder_model\\migration.sql": {
+    "mtime": 1760993234.5176592,
+    "hash": "f8855d88e435c79e33ce2a74d4271965"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251030030651_add_google_auth_fields\\migration.sql": {
+    "mtime": 1761793611.5604434,
+    "hash": "1d63a3fea597ad7656e9b87f7efaa535"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251030032150_add_user_profile_fields\\migration.sql": {
+    "mtime": 1761794510.00932,
+    "hash": "92153531c0ba407fdae5b5ac994f721f"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251101223935_add_user_status_and_admin_role\\migration.sql": {
+    "mtime": 1762036775.826937,
+    "hash": "47787e492b6cb5ad1a36d0579f27df38"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251105204446_add_google_event_ids\\migration.sql": {
+    "mtime": 1762375486.2455623,
+    "hash": "ff5fe07860ba9599a8933188f6b8c186"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20251110163638_clear\\migration.sql": {
+    "mtime": 1762973681.6771696,
+    "hash": "83f8d7d8fa960f5408e7acecc442ba22"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\prisma\\migrations\\20260511185239_add_course_admin_roles\\migration.sql": {
+    "mtime": 1778525559.8114467,
+    "hash": "efa8efffe86e52f50ea318422503c916"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\app.ts": {
+    "mtime": 1776218626.9619198,
+    "hash": "87794c3dabf98ab94fc1a84fc2c91586"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\index.ts": {
+    "mtime": 1776218628.30228,
+    "hash": "0a1ccee1d6c4c46cae2610eb29fcc0de"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\types.d.ts": {
+    "mtime": 1759354129.8598862,
+    "hash": "7c62e78fe0cf28f07c8e000d82fa1999"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\config\\config.ts": {
+    "mtime": 1762973681.6846983,
+    "hash": "fe07212ae8fe4ac245d9e88f1cec6c20"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\config\\database.ts": {
+    "mtime": 1757818784.0,
+    "hash": "393b8bd15a261b9b8975ba93ae6d77c1"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\config\\googleAuth.ts": {
+    "mtime": 1761792101.1471255,
+    "hash": "873f306428c3b78b078a6783e22420be"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\config\\socket.ts": {
+    "mtime": 1759885564.5910258,
+    "hash": "2d8329b901e46c16874d74dd3de4f544"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\adminCourseController.ts": {
+    "mtime": 1778525762.488297,
+    "hash": "efb9608719f3a1188295217149492cb5"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\adminUserController.ts": {
+    "mtime": 1778525675.607489,
+    "hash": "1f58255e5762ebc0cb309ac9c5c5f4a6"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\authController.ts": {
+    "mtime": 1762973681.6863751,
+    "hash": "f39903d219e28150c3bee2eba916b26a"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\chatbotController.ts": {
+    "mtime": 1762383713.9845102,
+    "hash": "4a5c38174205787e71ea3773ad72a154"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\chatController.ts": {
+    "mtime": 1762973681.686908,
+    "hash": "235fe73c2c060a030bbf189cef5af255"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\examController.ts": {
+    "mtime": 1762034116.722166,
+    "hash": "ca6815cb03a09debfd1e0a395ef039b4"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\notificationController.ts": {
+    "mtime": 1761779724.5966084,
+    "hash": "5a6e3559240d4314700728c2f718d04d"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\profileController.ts": {
+    "mtime": 1761794640.0540903,
+    "hash": "fd6a38b93b27f1dc00aba981f69c2862"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\projectController.ts": {
+    "mtime": 1762375540.173858,
+    "hash": "0dd6480fa80d33d1a14951cd69cd05f3"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\reminderController.ts": {
+    "mtime": 1761787696.2406435,
+    "hash": "78f8175053332d6d7825d06c622b17a4"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\reportController.ts": {
+    "mtime": 1761795397.93991,
+    "hash": "724312cce8d448f5b299648001e76e60"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\submissionController.ts": {
+    "mtime": 1762973681.68884,
+    "hash": "c04ddf9ab7a0e3397faa2f7d082c931b"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\taskController.ts": {
+    "mtime": 1762973681.6904483,
+    "hash": "bd26617a9f86091def29e922551f7f40"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\controller\\userController.ts": {
+    "mtime": 1762973681.6909626,
+    "hash": "d2b81b72a96f23a6d90930f37f888740"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\default.d.ts": {
+    "mtime": 1778525891.7001412,
+    "hash": "6cfa5c5e0b5de6abfc20f2532414712c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\default.js": {
+    "mtime": 1778525891.7001412,
+    "hash": "1f0db1021cfeac03b7418b20a4eedd9c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\edge.d.ts": {
+    "mtime": 1778525891.7026525,
+    "hash": "b1a34f9b323447f227db5aa901d5f3a9"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\edge.js": {
+    "mtime": 1778525891.7026525,
+    "hash": "4fcbf98caa440c8c17d6347df87b0dae"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\index-browser.js": {
+    "mtime": 1778525891.7026525,
+    "hash": "bc88867fc639c59e276f823dbdb54f4d"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\index.d.ts": {
+    "mtime": 1778525891.7026525,
+    "hash": "4e59b7d5e388b722ae4c113490737470"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\index.js": {
+    "mtime": 1778525891.7001412,
+    "hash": "6bcfe0e28fd3fa23158084182c43f7ce"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\wasm.d.ts": {
+    "mtime": 1778525891.7026525,
+    "hash": "6cfa5c5e0b5de6abfc20f2532414712c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\wasm.js": {
+    "mtime": 1778525891.7026525,
+    "hash": "bc88867fc639c59e276f823dbdb54f4d"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\edge-esm.js": {
+    "mtime": 1761790079.0294943,
+    "hash": "15821fa6980edcb9b64b1865f25b8157"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\edge.js": {
+    "mtime": 1761790079.4008377,
+    "hash": "ef2cdf9fbff77bc248a9b351752d1f41"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\index-browser.d.ts": {
+    "mtime": 1761790080.7709112,
+    "hash": "1e7903aca521a7d99dbec5a0326869a9"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\index-browser.js": {
+    "mtime": 1761790079.640851,
+    "hash": "47ad277444d7de18b821d36c0c81a9d1"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\library.d.ts": {
+    "mtime": 1761790080.8245833,
+    "hash": "e54698694a31b910b17d9ba7cb94d045"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\library.js": {
+    "mtime": 1761790080.4419093,
+    "hash": "db7d9eb928156875559563848c73594c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\react-native.js": {
+    "mtime": 1761790080.602175,
+    "hash": "081c2344052e924d1c98e78b697d6175"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\generated\\prisma\\runtime\\wasm.js": {
+    "mtime": 1761790080.7109337,
+    "hash": "952d4c9478106839749640fb5a16eb52"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\middleware\\errorHanddler.ts": {
+    "mtime": 1760802269.917481,
+    "hash": "c362cffe015507d8108ac5718b1a02bf"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\middleware\\showRequest.ts": {
+    "mtime": 1757963909.3689587,
+    "hash": "8b15399aeade35baa37e46c8a4ad87a1"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\middleware\\validateSchema.ts": {
+    "mtime": 1761790303.5431669,
+    "hash": "2ec8f002e54c9ef72b520c56ff5376c8"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\middleware\\jwt\\createToken.ts": {
+    "mtime": 1761794675.106396,
+    "hash": "364794d6c0168fd21ea9a6a936517d0a"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\middleware\\jwt\\verifyToken.ts": {
+    "mtime": 1762037864.0812721,
+    "hash": "f5ecd64e5e9163092e7de1e0b0917c8a"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\IUser.ts": {
+    "mtime": 1762039959.251184,
+    "hash": "a814e25501c7ae247e662c473a05abf9"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\Exam\\examModel.ts": {
+    "mtime": 1762973681.6930585,
+    "hash": "7ac2ec80ab0f534b0154d196e22ab115"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\Project\\projectModel.ts": {
+    "mtime": 1758063634.063808,
+    "hash": "2cf7264d9ad17d70c446457ef043a888"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\Submission\\submissionModel.ts": {
+    "mtime": 1762973681.6941223,
+    "hash": "239b58fa1af8f347ef5205745a4c338e"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\Task\\taskModel.ts": {
+    "mtime": 1762973681.6946545,
+    "hash": "dc04d69443ab26f9fd55f7beedf170a7"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\User\\profileSchema.ts": {
+    "mtime": 1761794640.0145779,
+    "hash": "28d40d40577b8f6a4937a81dae193c9e"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\model\\User\\userModel.ts": {
+    "mtime": 1762039043.733973,
+    "hash": "3462b05f1d07338ecbc06624de55a145"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\activityLogRoutes.ts": {
+    "mtime": 1762973681.6951795,
+    "hash": "ae0d6e84fdbc9907ff699258accdcbf1"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\adminRoutes.ts": {
+    "mtime": 1778525687.0947018,
+    "hash": "ec5006d453c1ebce76da306358906eeb"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\authRoutes.ts": {
+    "mtime": 1777055173.7606697,
+    "hash": "b8be2355a146c9e7ce3f654c5c53d426"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\chatbotRoutes.ts": {
+    "mtime": 1762383625.553149,
+    "hash": "2ea7d6bbea155076eaddcb416a4097c6"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\chatRoutes.ts": {
+    "mtime": 1762973681.6979163,
+    "hash": "4a0879976e397cf156e9d62d75ba0067"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\dashboardRoutes.ts": {
+    "mtime": 1762973681.698541,
+    "hash": "5701d9bf5d2076723bf363773899ba44"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\examRoutes.ts": {
+    "mtime": 1761782476.6421664,
+    "hash": "1dc313fd77251c85160572f7c66d97ab"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\googleRoutes.ts": {
+    "mtime": 1761781822.278315,
+    "hash": "9e23ea32936160b3cbe2b5f7827af333"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\notificationRoutes.ts": {
+    "mtime": 1761781756.1326003,
+    "hash": "e58793d1f01bea7f561a6154a1aa0f05"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\profileRoutes.ts": {
+    "mtime": 1762973681.6996284,
+    "hash": "1d8a580aac819925d6f3543f79d2b5f3"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\projectRoutes.ts": {
+    "mtime": 1761781734.2998898,
+    "hash": "b170a2a8680157a3f2170b75cb31d73e"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\reminderRoutes.ts": {
+    "mtime": 1761781765.2918587,
+    "hash": "7a3ff3105ef6edb12c4dda1f9ffbdcd6"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\reportRoutes.ts": {
+    "mtime": 1761781774.980181,
+    "hash": "23c81eba62840e10b21b181c497ef881"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\submissionRoutes.ts": {
+    "mtime": 1762973681.700684,
+    "hash": "ed2d8709993dd3f91f435abd25f4d10c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\taskRoutes.ts": {
+    "mtime": 1761781722.7298036,
+    "hash": "8c55c681e02c1087be48e0ab1ff07b7d"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\userRoutes.ts": {
+    "mtime": 1762973681.7012272,
+    "hash": "f6fc0a12168a40bb5aac19683ea5ddbe"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\activityLogService.ts": {
+    "mtime": 1760997139.3455565,
+    "hash": "a878204b40f09b79748f22d8f24e24be"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\aiService.ts": {
+    "mtime": 1776223078.748979,
+    "hash": "edb04876c980c2bbd01aea450bb8cf08"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\calendarService.ts": {
+    "mtime": 1762375529.358576,
+    "hash": "65477e7ca9547f0ab62ae61dbbae5b6e"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\chatbotService.ts": {
+    "mtime": 1777055722.3457344,
+    "hash": "857a77a8edd539559d186b16b9c91828"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\examService.ts": {
+    "mtime": 1762973681.7027433,
+    "hash": "8b0da14b0547cb061c200a8e483e30ad"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\gmailService.ts": {
+    "mtime": 1762039907.1493309,
+    "hash": "354f1337554b871cced8776f1ebcf4f6"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\googleAuthService.ts": {
+    "mtime": 1761794639.8676996,
+    "hash": "2e7891c50e6a5c9574f32065c9e186fc"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\notificationScheduler.ts": {
+    "mtime": 1760990889.4339497,
+    "hash": "b54f7442772a12890caae4852069d3cc"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\projectService.ts": {
+    "mtime": 1759436122.3762672,
+    "hash": "14f4887333e5e6581fe86ba36d37ba02"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\reminderService.ts": {
+    "mtime": 1761790341.380154,
+    "hash": "45a5d50b94fc8485c0bd576700b21a6c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\submissionService.ts": {
+    "mtime": 1762973681.7037613,
+    "hash": "554eb07cd53987e22383baf66f8f811d"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\taskService.ts": {
+    "mtime": 1777058077.7025127,
+    "hash": "6c911c6f2980cd4334ad677a4649e63a"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\service\\userService.ts": {
+    "mtime": 1762036884.2593699,
+    "hash": "6b0f956b80cc039b8a53eb596dd7cb02"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\types\\auth.ts": {
+    "mtime": 1762376244.3776634,
+    "hash": "1328ce08194a253a91187b5f1b7564df"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\types\\express-types.ts": {
+    "mtime": 1761791297.4111812,
+    "hash": "0f0dc4a3a92dbd962d9060b27f189454"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\types\\express.d.ts": {
+    "mtime": 1762973681.7048147,
+    "hash": "57db9709f819fe08c2184ed83b7aac73"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\types\\handlers.ts": {
+    "mtime": 1761790461.243274,
+    "hash": "dd8cb0f7150214cfd9b02968e90d980e"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\types\\request.ts": {
+    "mtime": 1761789694.487489,
+    "hash": "2df40f1eb452bab68709c6233026971c"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\util\\errorHandler.ts": {
+    "mtime": 1761789475.309917,
+    "hash": "c30869c46a1200eccded631e4f794c02"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\util\\httpError.ts": {
+    "mtime": 1757818784.0,
+    "hash": "460c17497a6183ed675e09f6fef64862"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\util\\bcrypt\\comparePassword.ts": {
+    "mtime": 1761790964.214252,
+    "hash": "60de4d0bfe35ba8fb4ddff80dd6f0a59"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\util\\bcrypt\\hashpassword.ts": {
+    "mtime": 1757818784.0,
+    "hash": "89fe88af4da36948ce0fe7c9d552d503"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\BACKEND_DOCUMENTATION.md": {
+    "mtime": 1762467244.4771407,
+    "hash": "a3a1a01cb5aec3c2aace295fe0c48188"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\DOCUMENTACION_COMPLETA.md": {
+    "mtime": 1762467567.561159,
+    "hash": "1fc3ae29552175669926993e1a69eade"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\README.md": {
+    "mtime": 1762467696.9341972,
+    "hash": "5e1c7978b53e82722d6a86ca66c84f69"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\README_GOOGLE_INTEGRATION.md": {
+    "mtime": 1761769372.3951378,
+    "hash": "82b3497f4f5e9b77704ffe4399edaf83"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\TODO.md": {
+    "mtime": 1776218656.307999,
+    "hash": "9b005dc5dfe15a990a06c28a0d1b9dfc"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\TODO_admin_course_integration.md": {
+    "mtime": 1778525924.6732292,
+    "hash": "98e3a2918f2ed86775cc1ed6edb40f94"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\public\\profile-setup.html": {
+    "mtime": 1761795245.9392538,
+    "hash": "fb5aede62979b83c4901e8aa079bcbf9"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\authSuccess.html": {
+    "mtime": 1761794141.4716225,
+    "hash": "07b601959de7e0c219ba5896f1319a35"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\src\\routes\\profileSetup.html": {
+    "mtime": 1761794819.8981192,
+    "hash": "2ed315970b35914e95eeccc803832b80"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\uploads\\submissions\\1\\1762975671832-751819093.pdf": {
+    "mtime": 1762975671.895217,
+    "hash": "43a51865f68e3d04058f9037cd13a7f3"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\uploads\\submissions\\1\\1777057036889-467550285.pdf": {
+    "mtime": 1777057036.8923016,
+    "hash": "62d8d2bdc0b3479f767404488f6062ee"
+  },
+  "C:\\Users\\SOLER DAVID\\Pictures\\proyecto-pd\\uploads\\submissions\\2\\1777144028509-537845586.pdf": {
+    "mtime": 1777144028.5154984,
+    "hash": "a4c9e64ed2c78975da933239a8fa3014"
+  }
+}

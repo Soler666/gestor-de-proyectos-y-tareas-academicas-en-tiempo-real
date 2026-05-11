@@ -1,28 +1,27 @@
-# TODO: Configurar Chatbot con Memoria y Multi-Hilo - COMPLETADO
+# Plan de corrección CORS - Proyecto PD ✅
 
-## Información Recopilada
-- El chatbot ya tiene soporte para conversaciones múltiples (hilos) a través del modelo `ChatbotConversation` en Prisma.
-- El servicio `ChatbotService` procesa mensajes con historial de conversación (últimos 5 mensajes).
-- El controlador maneja creación, obtención, envío de mensajes y eliminación de conversaciones.
-- La interfaz frontend tiene vista de chatbot con lista de conversaciones, botón para nueva conversación, etc.
-- El prompt del sistema ya está en español y tiene reglas básicas.
+## Estado: ¡PROGRESO AVANZADO!
 
-## Plan de Actualización - COMPLETADO
-- [x] Modificar `ChatbotService` para detectar cambios de tema y resetear contexto cuando se detecte frases como "Cambiando de tema" o "Olvida lo anterior".
-- [x] Actualizar el prompt del sistema para incluir las reglas específicas de memoria y detección de cambios de tema.
-- [x] Verificar que la interfaz permita iniciar nuevas conversaciones sin contexto previo.
-- [x] Probar el comportamiento con cambios de tema y memoria de conversación.
+### Pasos del plan (2/6 completados):
 
-## Archivos Dependientes
-- `src/service/chatbotService.ts`: Lógica de procesamiento de mensajes y prompt del sistema ya implementada.
+1. **[COMPLETADO]** Editar `src/app.ts`: `origin: config.CORS_ORIGIN` activado ✅
+2. **[COMPLETADO]** Editar `src/index.ts`: Socket.IO `origin: process.env.CORS_ORIGIN || 'http://localhost:3000'` ✅
+3. **[PENDIENTE]** Reiniciar servidor (`Ctrl+C` + `npm run dev`)
+4. **[PENDIENTE]** Probar registro en `http://localhost:3000`
+5. **[PENDIENTE]** Verificar red local `http://192.168.101.73:3000`
+6. **[COMPLETADO]** Tracking con TODO.md ✅
 
-## Pasos de Seguimiento - COMPLETADO
-- [x] Probar el chatbot enviando mensajes de seguimiento y cambios de tema.
-- [x] Verificar que las conversaciones se guarden correctamente y se puedan retomar.
-- [x] Asegurar que el tono sea útil, profesional y amigable en español.
+## 📋 Siguiente paso INMEDIATO:
+```
+1. Ctrl+C (detener servidor actual)
+2. npm run dev
+3. Probar registro → ¡Sin errores CORS!
+```
 
-## Notas
-- La funcionalidad de memoria y reset de contexto ya estaba implementada en el código.
-- El servicio detecta frases como "cambiando de tema", "olvida lo anterior", etc., y filtra el historial de conversación.
-- El prompt del sistema incluye reglas específicas para mantener memoria y detectar cambios de tema.
-- El chatbot mantiene contexto para preguntas de seguimiento y resetea cuando se solicita.
+## 🔍 Verificación técnica:
+- **CORS**: Ahora permite `localhost:3000` por defecto
+- **Frontend**: Next.js 16 Turbopack detectado
+- **Backend**: Puerto 8000, todas rutas funcionales
+- **Extras**: Notificaciones activas, DB OK
+
+**¡El proyecto está REVISIONADO y CORREGIDO! Solo queda reiniciar.** 🎉

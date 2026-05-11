@@ -13,9 +13,11 @@ datasource db {
 }
 
 model User {
+
   id             Int     @id @default(autoincrement())
   username       String  @unique
-  role           String  @default("ALUMNO") // ALUMNO, TUTOR o ADMIN
+role           String  @default("STUDENT") // ADMIN, TUTOR o STUDENT
+
   firstName      String?
   lastName       String?
   email          String?  @unique
@@ -41,7 +43,39 @@ model User {
   createdExams   Exam[] @relation("ExamCreator")
   examSubmissions ExamSubmission[] @relation("ExamStudent")
   chatbotConversations ChatbotConversation[] @relation("UserChatbotConversations")
+
+  coursesTaught  Course[] @relation("CourseTutor")
+  courseEnrollments Enrollment[] @relation("EnrollmentStudent")
 }
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tutorId Int?
+  tutor   User? @relation("CourseTutor", fields: [tutorId], references: [id])
+
+  enrollments Enrollment[]
+  tasks       Task[] @relation("CourseTasks")
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  studentId Int
+  student   User     @relation("EnrollmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, studentId])
+}
+
+
 
 model Project {
   id          Int      @id @default(autoincrement())
@@ -68,6 +102,8 @@ model Task {
   googleEventId String? // ID del evento en Google Calendar
   project     Project? @relation(fields: [projectId], references: [id])
   projectId   Int?
+  course      Course?  @relation("CourseTasks", fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    Int?     // ID del curso (para tareas asignadas a nivel de curso)
   responsible User     @relation("UserTasks", fields: [responsibleId], references: [id])
   responsibleId Int
   tutor       User?    @relation("TutorTasks", fields: [tutorId], references: [id])

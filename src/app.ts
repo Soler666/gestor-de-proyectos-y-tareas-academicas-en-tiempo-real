@@ -21,6 +21,10 @@ import adminRoutes from './routes/adminRoutes'
 import chatbotRoutes from './routes/chatbotRoutes'
 import activityLogRoutes from './routes/activityLogRoutes'
 import dashboardRoutes from './routes/dashboardRoutes'
+import adminCoursesRoutes from './routes/adminCoursesRoutes'
+import courseTaskRoutes from './routes/courseTaskRoutes'
+
+
 
 const app = express()
 const port = config.PORT
@@ -37,8 +41,7 @@ app.use(showRequests)
 
 // Configuración CORS más segura
 app.use(cors({
- // origin: config.CORS_ORIGIN,
- origin: 'https://simback.netlify.app',
+  origin: config.CORS_ORIGIN,
   // Exponer headers necesarios para descargas con nombre de archivo
   exposedHeaders: ['token', 'Content-Disposition'],
   credentials: true,
@@ -88,6 +91,9 @@ app.use('/exams', examRoutes)
 app.use('/google', googleRoutes)
 app.use('/profile', profileRoutes)
 app.use('/admin', adminRoutes)
+app.use('/admin', adminCoursesRoutes)
+app.use('/courses', courseTaskRoutes)
+
 app.use('/chatbot', chatbotRoutes)
 app.use('/activity-logs', activityLogRoutes)
 app.use('/dashboard', dashboardRoutes)

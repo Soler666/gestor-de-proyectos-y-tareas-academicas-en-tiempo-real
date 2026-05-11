@@ -136,6 +136,22 @@ exports.Prisma.UserScalarFieldEnum = {
   calendarId: 'calendarId'
 };
 
+exports.Prisma.CourseScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  tutorId: 'tutorId'
+};
+
+exports.Prisma.EnrollmentScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  studentId: 'studentId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -157,6 +173,7 @@ exports.Prisma.TaskScalarFieldEnum = {
   type: 'type',
   googleEventId: 'googleEventId',
   projectId: 'projectId',
+  courseId: 'courseId',
   responsibleId: 'responsibleId',
   tutorId: 'tutorId'
 };
@@ -283,6 +300,8 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Course: 'Course',
+  Enrollment: 'Enrollment',
   Project: 'Project',
   Task: 'Task',
   ChatMessage: 'ChatMessage',

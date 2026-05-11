@@ -109,4 +109,82 @@ dashboardRoutes.get('/stats', async (req: any, res: any) => {
   }
 })
 
+// GET /dashboard/tutor/courses - Cursos donde el usuario es tutor
+// GET /dashboard/student/courses - Cursos donde el usuario está matriculado
+
+dashboardRoutes.get('/tutor/courses', async (req: any, res: any) => {
+  try {
+    const userId = req.user?.id
+    const userRole = req.user?.role
+
+    if (!userId || !userRole) {
+      return res.status(401).json({ message: 'Usuario no autenticado' })
+    }
+
+    if (userRole !== 'TUTOR' && userRole !== 'ADMIN') {
+      return res.status(403).json({ message: 'Acceso denegado' })
+    }
+
+    const { PrismaClient } = await import('../generated/prisma')
+    const prisma = new PrismaClient()
+
+    const courses = await prisma.course.findMany({
+      where: { tutorId: userRole === 'TUTOR' ? userId : undefined },
+      include: {
+        tutor: { select: { id: true, username: true, firstName: true, lastName: true, role: true } },
+        enrollments: {
+          include: { student: { select: { id: true, username: true, firstName: true, lastName: true, role: true } } }
+        }
+      },
+    })
+
+    await prisma.$disconnect()
+    res.json({ courses })
+  } catch (error) {
+    console.error('Error obteniendo cursos del tutor:', error)
+    res.status(500).json({ message: 'Error al obtener cursos del tutor' })
+  }
+})
+
+dashboardRoutes.get('/student/courses', async (req: any, res: any) => {
+  try {
+    const userId = req.user?.id
+    const userRole = req.user?.role
+
+    if (!userId || !userRole) {
+      return res.status(401).json({ message: 'Usuario no autenticado' })
+    }
+
+    if (userRole !== 'ALUMNO' && userRole !== 'ADMIN') {
+      return res.status(403).json({ message: 'Acceso denegado' })
+    }
+
+    const { PrismaClient } = await import('../generated/prisma')
+    const prisma = new PrismaClient()
+
+    const enrollments = await prisma.enrollment.findMany({
+      where: { studentId: userId },
+      include: {
+        course: {
+          include: {
+            tutor: { select: { id: true, username: true, firstName: true, lastName: true, role: true } },
+            enrollments: {
+              include: { student: { select: { id: true, username: true, firstName: true, lastName: true, role: true } } }
+            }
+          }
+        }
+      }
+    })
+
+    await prisma.$disconnect()
+
+    // Devolver estructura por consistencia con frontend: lista de cursos
+    const courses = enrollments.map((e) => e.course)
+    res.json({ courses })
+  } catch (error) {
+    console.error('Error obteniendo cursos del alumno:', error)
+    res.status(500).json({ message: 'Error al obtener cursos del alumno' })
+  }
+})
+
 export default dashboardRoutes

@@ -79,6 +79,40 @@ const taskService = {
       }
     }
 
+    // Eliminar entregas (submissions) y archivos asociados antes de borrar la tarea
+    const submissions = await prisma.submission.findMany({
+      where: { taskId: id },
+      include: { files: true },
+    });
+
+    for (const submission of submissions) {
+      // Eliminar archivos físicos del disco si existen
+      for (const file of submission.files) {
+        try {
+          const fs = await import('fs');
+          const path = await import('path');
+          const filePath = path.join(process.cwd(), file.path);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`Archivo eliminado del disco: ${filePath}`);
+          }
+        } catch (err: any) {
+          console.warn(`Error eliminando archivo físico: ${err.message}`);
+        }
+      }
+
+      // Eliminar registros de archivos en la base de datos
+      await prisma.file.deleteMany({
+        where: { submissionId: submission.id },
+      });
+    }
+
+    // Eliminar las entregas
+    await prisma.submission.deleteMany({
+      where: { taskId: id },
+    });
+    console.log(`Entregas eliminadas para la tarea ${id}`);
+
     // Eliminar la tarea de la base de datos
     return await prisma.task.delete({ where: { id } });
   },

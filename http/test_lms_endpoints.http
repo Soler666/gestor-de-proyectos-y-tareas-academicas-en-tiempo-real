@@ -1,0 +1,178 @@
+### Test de Endpoints LMS - Plataforma Completada
+
+@baseUrl = http://localhost:8000
+
+# ============================================
+# SETUP: Obtener token de admin (primero necesitas estar logueado)
+# ============================================
+
+### 1. Login como Admin (si tienes admin registrado)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# ============================================
+# ADMIN COURSE MANAGEMENT - Rutas Nuevas/Mejoradas
+# ============================================
+
+### 2. Listar todos los cursos (Admin)
+GET {{baseUrl}}/admin/courses
+Authorization: Bearer {{adminToken}}
+
+### 3. Crear un nuevo curso
+POST {{baseUrl}}/admin/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Introducción a TypeScript",
+  "description": "Aprende TypeScript desde cero hasta nivel avanzado"
+}
+
+@courseId = 1
+
+### 4. Ver detalles de un curso (NUEVO)
+GET {{baseUrl}}/admin/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+
+### 5. Actualizar un curso (NUEVO)
+PUT {{baseUrl}}/admin/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Introducción a TypeScript - Actualizado",
+  "description": "Curso actualizado con nuevos contenidos"
+}
+
+### 6. Asignar tutor a un curso
+PUT {{baseUrl}}/admin/courses/{{courseId}}/tutor
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "tutorId": 2
+}
+
+@tutorId = 2
+
+### 7. Matricular estudiantes en el curso
+POST {{baseUrl}}/admin/courses/{{courseId}}/enrollments
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "studentIds": [3, 4, 5, 6]
+}
+
+### 8. Ver estudiantes del curso (NUEVO)
+GET {{baseUrl}}/admin/courses/{{courseId}}/students
+Authorization: Bearer {{adminToken}}
+
+### 9. Desmatricular un estudiante (NUEVO)
+DELETE {{baseUrl}}/admin/courses/{{courseId}}/enrollments/3
+Authorization: Bearer {{adminToken}}
+
+### 10. Eliminar un curso (NUEVO)
+DELETE {{baseUrl}}/admin/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+
+# ============================================
+# COURSE TASKS - NUEVA FUNCIONALIDAD LMS PRINCIPAL
+# ============================================
+
+### 11. Crear una tarea para TODO el curso (NUEVO - Tutor)
+# Esta es la funcionalidad clave: 1 POST = N tareas (una por cada estudiante)
+POST {{baseUrl}}/courses/{{courseId}}/tasks
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "name": "Ejercicio 1: Tipos Básicos",
+  "description": "Completa los ejercicios sobre tipos básicos en TypeScript",
+  "dueDate": "2026-05-25T23:59:59Z",
+  "priority": "Alta",
+  "type": "project"
+}
+
+@tutorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### 12. Obtener tareas del curso (Tutor - Ve agrupadas)
+GET {{baseUrl}}/courses/{{courseId}}/tasks
+Authorization: Bearer {{tutorToken}}
+
+### 13. Obtener tareas del curso (Estudiante - Ve sus tareas)
+GET {{baseUrl}}/courses/{{courseId}}/tasks
+Authorization: Bearer {{studentToken}}
+
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### 14. Ver detalle de una tarea específica
+GET {{baseUrl}}/courses/{{courseId}}/tasks/1
+Authorization: Bearer {{tutorToken}}
+
+### 15. Actualizar una tarea del curso
+PUT {{baseUrl}}/courses/{{courseId}}/tasks/1
+Authorization: Bearer {{tutorToken}}
+Content-Type: application/json
+
+{
+  "name": "Ejercicio 1: Tipos Básicos - Actualizado",
+  "status": "En progreso",
+  "priority": "Media"
+}
+
+### 16. Eliminar una tarea del curso
+DELETE {{baseUrl}}/courses/{{courseId}}/tasks/1
+Authorization: Bearer {{tutorToken}}
+
+# ============================================
+# DASHBOARD - CONSULTAR CURSOS
+# ============================================
+
+### 17. Dashboard Tutor: Ver cursos que enseña
+GET {{baseUrl}}/dashboard/tutor/courses
+Authorization: Bearer {{tutorToken}}
+
+### 18. Dashboard Estudiante: Ver cursos matriculados
+GET {{baseUrl}}/dashboard/student/courses
+Authorization: Bearer {{studentToken}}
+
+# ============================================
+# ESTADÍSTICAS
+# ============================================
+
+### 19. Estadísticas del Dashboard (Tutor)
+GET {{baseUrl}}/dashboard/stats
+Authorization: Bearer {{tutorToken}}
+
+### 20. Estadísticas del Dashboard (Estudiante)
+GET {{baseUrl}}/dashboard/stats
+Authorization: Bearer {{studentToken}}
+
+# ============================================
+# NOTAS IMPORTANTES
+# ============================================
+
+# 1. Reemplaza {{adminToken}}, {{tutorToken}}, {{studentToken}} con tokens reales
+# 2. Todos los endpoints están protegidos con JWT
+# 3. Las tareas de curso se crean UNA VEZ pero se asignan a TODOS los estudiantes
+# 4. Cuando hay cambios, se notifica a los estudiantes en tiempo real vía Socket.io
+# 5. Las tareas se sincronizan con Google Calendar automáticamente
+
+# Ejemplo de flujo completo:
+# 1. Admin crea curso
+# 2. Admin asigna tutor
+# 3. Admin matricula 4 estudiantes
+# 4. Tutor crea 1 tarea
+#    → Se crean 4 tareas (1 por estudiante)
+#    → Los 4 estudiantes reciben notificación
+#    → Las 4 se sincronizan con Google Calendar
+# 5. Tutor ve 1 tarea con 4 responsables
+# 6. Cada estudiante ve sus tareas del curso
